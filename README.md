@@ -1,2 +1,2 @@
 # MIT8103--Advanced-Database-Test
-Case study -- Equity Pay
+Case study -- Equity
