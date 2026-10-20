@@ -1,4 +1,4 @@
-- Initial Valid Data Setup
+-- Initial Valid Data Setup
 INSERT INTO customers (first_name, last_name, email, phone, customer_type)
 VALUES ('Ada', 'Obi', 'ada@example.com', '08011111111', 'INDIVIDUAL'),
        ('Bola', 'Ade', 'bola@example.com', '08022222222', 'INDIVIDUAL');

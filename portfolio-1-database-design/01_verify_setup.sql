@@ -1,1 +1,1 @@
-SELECT version(), current_database
+SELECT version(), current_database();
