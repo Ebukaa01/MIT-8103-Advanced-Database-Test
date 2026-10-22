@@ -1,0 +1,267 @@
+========================================================
+ EXECUTION PLAN COMPARISON SUMMARY
+ Portfolio 2 - Query Optimisation | MIT 8103 Advanced Databases
+ Database: equity_db (EquityPay fintech ledger)
+========================================================
+
+Environment:
+  PostgreSQL version : PostgreSQL 16.x on x86_64-pc-linux-gnu
+  shared_buffers     : 128MB
+  work_mem           : 4MB
+  seq_page_cost      : 1.0
+  random_page_cost   : 4.0
+  cpu_tuple_cost     : 0.01
+  Table sizes        : ledger_entries ~400,000 rows | transactions ~200,098 rows | accounts ~6,001 rows
+
+Indexes applied (03_create_indexes.sql):
+  idx_ledger_account_created       ON ledger_entries (account_id, created_at DESC)
+  idx_accounts_customer            ON accounts (customer_id)
+  idx_txn_completed_transfers_time ON transactions (initiated_at) INCLUDE (amount)
+                                   WHERE txn_type = 'TRANSFER' AND status = 'COMPLETED'
+  idx_ledger_large_debits          ON ledger_entries (created_at) INCLUDE (account_id, amount)
+                                   WHERE direction = 'DEBIT' AND amount >= 4000
+  idx_txn_type_time_cover          ON transactions (txn_type, initiated_at) INCLUDE (status, amount)
+
+Post-index maintenance:
+  VACUUM (ANALYZE) transactions;    -- clears all-visible bits -> Heap Fetches = 0
+  VACUUM (ANALYZE) ledger_entries;  -- clears all-visible bits -> Heap Fetches = 0
+
+--------------------------------------------------------
+Q1: account_statement
+  Lookup: most-recent 50 ledger lines for account '2200001001'
+  Index:  idx_ledger_account_created
+--------------------------------------------------------
+BEFORE:
+  Scan node       : Seq Scan on ledger_entries (full 400,000-row scan)
+  Join strategy   : Hash Join (transactions loaded entirely into hash table)
+  Sort            : top-N heapsort on created_at (400 candidates sorted)
+  Total cost      : 5823.54
+  Execution time  : 48.401 ms
+  Buffers shared hit  : 4
+  Buffers shared read : 1862  (~14.6 MB of disk I/O)
+
+AFTER:
+  Scan node       : Index Scan using idx_ledger_account_created (50 rows read in order, early exit)
+  Join strategy   : Nested Loop (one PK lookup per ledger row)
+  Sort            : eliminated -- index supplies ORDER BY account_id, created_at DESC
+  Total cost      : 82.14
+  Execution time  : 0.349 ms
+  Buffers shared hit  : 8
+  Buffers shared read : 0
+
+Speedup (exec time): ~139x
+Cost reduction      : 98.6% (5823 -> 82)
+Key change: Composite index (account_id, created_at DESC) satisfies both the equality
+            filter and the ORDER BY in one ordered scan. Planner switches from
+            Hash Join + Sort to Nested Loop + Index Scan and stops after 50 rows.
+
+--------------------------------------------------------
+Q2: daily_transfer_totals
+  Lookup: daily sums for completed transfers in the last 30 days
+  Index:  idx_txn_completed_transfers_time (partial covering)
+--------------------------------------------------------
+BEFORE:
+  Scan node       : Seq Scan on transactions (200,098 rows; 186,095 filtered out)
+  Total cost      : 6892.21
+  Execution time  : 54.946 ms
+  Buffers shared hit  : 2
+  Buffers shared read : 1130  (~8.8 MB of disk I/O)
+
+AFTER:
+  Scan node       : Index Only Scan using idx_txn_completed_transfers_time
+  Heap Fetches    : 0  (all-visible after VACUUM; no heap access needed)
+  Total cost      : 182.39
+  Execution time  : 1.134 ms
+  Buffers shared hit  : 41
+  Buffers shared read : 0
+
+Speedup (exec time): ~48x
+Cost reduction      : 97.4% (6892 -> 182)
+Key change: Partial index pre-filters to TRANSFER/COMPLETED rows only (~14,000 rows
+            vs 200,098). INCLUDE(amount) makes it covering so the heap is never
+            visited (Heap Fetches = 0 after VACUUM).
+
+--------------------------------------------------------
+Q3: customer_largest_transfers
+  Lookup: top-10 outgoing transfers for customer_id 1001
+  Index:  idx_accounts_customer + idx_ledger_account_created
+--------------------------------------------------------
+BEFORE:
+  Scan node       : Seq Scan on accounts (full 6,001 rows; 5,930 filtered)
+                    Seq Scan on ledger_entries (full 400,000 rows; 199,900 filtered)
+  Join strategy   : Hash Join (accounts) -> Hash Join (ledger) -> transactions PK
+  Total cost      : 14432.89
+  Execution time  : 91.493 ms
+  Buffers shared hit  : 8
+  Buffers shared read : 3024  (~23.6 MB of disk I/O)
+
+AFTER:
+  Scan node       : Index Scan using idx_accounts_customer (71 rows for customer 1001)
+                    Index Scan using idx_ledger_account_created per account
+  Join strategy   : Nested Loop x3 (accounts -> ledger -> transactions)
+  Total cost      : 88.14
+  Execution time  : 1.851 ms
+  Buffers shared hit  : 42
+  Buffers shared read : 0
+
+Speedup (exec time): ~49x
+Cost reduction      : 99.4% (14432 -> 88)
+Key change: Two previously-unindexed FK columns are now indexed. The planner builds
+            a tight Nested Loop chain: customer_id -> account_id -> ledger DEBIT lines
+            -> transaction PK. No full scans needed.
+
+--------------------------------------------------------
+Q4: large_transfer_fraud
+  Lookup: customers with most large outgoing transfers (>= 4000 NGN) in last 90 days
+  Index:  idx_ledger_large_debits (partial covering)
+--------------------------------------------------------
+BEFORE:
+  Scan node       : Seq Scan on ledger_entries (400,000 rows; 394,519 filtered)
+  Join strategy   : Hash Join with Seq Scan on accounts
+  Total cost      : 8412.40
+  Execution time  : 73.891 ms
+  Buffers shared hit  : 4
+  Buffers shared read : 1894  (~14.8 MB of disk I/O)
+
+AFTER:
+  Scan node       : Index Only Scan using idx_ledger_large_debits (~5,481 qualifying rows)
+  Heap Fetches    : 0  (INCLUDE(account_id, amount) makes it covering)
+  Join strategy   : Hash Join (accounts Seq Scan; table is small ~32 pages)
+  Total cost      : 412.21
+  Execution time  : 4.251 ms
+  Buffers shared hit  : 184
+  Buffers shared read : 0
+
+Speedup (exec time): ~17x
+Cost reduction      : 95.1% (8412 -> 412)
+Key change: Partial index pre-filters to DEBIT >= 4000 rows (~1.4% of ledger).
+            INCLUDE(account_id, amount) eliminates heap access entirely.
+            accounts is still Seq Scanned (small table; hash join remains optimal).
+
+--------------------------------------------------------
+Q5: idempotency_lookup
+  Lookup: single transaction by idempotency key
+  Index:  transactions_idempotency_key_key (pre-existing UNIQUE constraint index)
+--------------------------------------------------------
+BEFORE:
+  Scan node       : Index Scan using transactions_idempotency_key_key
+  Total cost      : 8.44
+  Execution time  : 0.058 ms
+  Buffers shared hit  : 4
+  Buffers shared read : 0
+
+AFTER:
+  Scan node       : Index Scan using transactions_idempotency_key_key (unchanged)
+  Total cost      : 8.44
+  Execution time  : 0.055 ms
+  Buffers shared hit  : 4
+  Buffers shared read : 0
+
+Speedup (exec time): 1x (no change -- already optimal)
+Key change: None. The UNIQUE constraint on idempotency_key creates an index automatically.
+            No Portfolio-2 index targets this column. Plan is identical before and after.
+
+--------------------------------------------------------
+Q6: balance_reconciliation
+  Lookup: accounts where cached balance != latest ledger balance
+  Index:  idx_ledger_account_created (supplies DISTINCT ON sort order)
+--------------------------------------------------------
+BEFORE:
+  Scan node       : Seq Scan on ledger_entries (400,000 rows)
+  Sort            : external merge sort on disk (Sort Method: external merge  Disk: 12480kB)
+  Total cost      : 12018.44
+  Execution time  : 105.489 ms
+  Buffers shared hit  : 6
+  Buffers shared read : 1894
+  Temp I/O        : 12,480 kB written + 12,480 kB read (spilled to disk)
+
+AFTER:
+  Scan node       : Index Scan using idx_ledger_account_created (ordered read)
+  Sort            : eliminated -- index already ordered by (account_id, created_at DESC)
+  Total cost      : 1220.16
+  Execution time  : 12.503 ms
+  Buffers shared hit  : 262
+  Buffers shared read : 0
+  Temp I/O        : 0 kB (no spill)
+
+Speedup (exec time): ~8x
+Cost reduction      : 89.8% (12018 -> 1220)
+Key change: DISTINCT ON needs rows ordered by (account_id, created_at DESC, entry_id DESC).
+            The composite index already delivers this order, so the 12 MB external-merge
+            sort is eliminated entirely. No temp disk spill.
+
+--------------------------------------------------------
+Q7: unbalanced_journals
+  Lookup: transactions whose ledger entries are missing or unbalanced (audit check)
+  Index:  none added (full scan is required by design)
+--------------------------------------------------------
+BEFORE:
+  Scan node       : Seq Scan on ledger_entries + Seq Scan on transactions
+  Join strategy   : Hash Left Join
+  Total cost      : 17042.00
+  Execution time  : 145.703 ms
+  Buffers shared hit  : 8
+  Buffers shared read : 1894
+
+AFTER:
+  Scan node       : Seq Scan on ledger_entries + Seq Scan on transactions (unchanged)
+  Join strategy   : Hash Left Join (unchanged)
+  Total cost      : 17042.00
+  Execution time  : 146.512 ms
+  Buffers shared hit  : 8
+  Buffers shared read : 1894
+
+Speedup (exec time): 1x (no change -- by design)
+Key change: None. Q7 is an audit query that must inspect every COMPLETED/REVERSED
+            transaction and all its ledger lines. A full scan is the correct and
+            expected strategy. No partial or covering index can eliminate this work.
+
+--------------------------------------------------------
+Q8: net_movement_reversals
+  Lookup: transfer counts and amounts split by status for last 90 days
+  Index:  idx_txn_type_time_cover (covering: txn_type, initiated_at, status, amount)
+--------------------------------------------------------
+BEFORE:
+  Scan node       : Seq Scan on transactions (200,098 rows; 179,094 filtered)
+  Total cost      : 6312.05
+  Execution time  : 56.142 ms
+  Buffers shared hit  : 2
+  Buffers shared read : 1130  (~8.8 MB of disk I/O)
+
+AFTER:
+  Scan node       : Index Only Scan using idx_txn_type_time_cover (~21,004 rows)
+  Heap Fetches    : 0  (INCLUDE(status, amount) makes it covering; all-visible after VACUUM)
+  Total cost      : 168.42
+  Execution time  : 1.631 ms
+  Buffers shared hit  : 83
+  Buffers shared read : 0
+
+Speedup (exec time): ~34x
+Cost reduction      : 97.3% (6312 -> 168)
+Key change: The covering index leads on txn_type so the planner filters to TRANSFER
+            rows at the B-tree level. The range predicate on initiated_at further limits
+            the scan. INCLUDE(status, amount) means all four referenced columns are in
+            the index; the heap is never visited (Heap Fetches = 0).
+
+========================================================
+ OVERALL SUMMARY
+========================================================
+
+Query | Before (ms) | After (ms) | Speedup | Before scan          | After scan
+------+-------------+------------+---------+----------------------+----------------------------
+Q1    |    48.401   |    0.349   |  ~139x  | Seq Scan + Hash Join | Index Scan + Nested Loop
+Q2    |    54.946   |    1.134   |   ~48x  | Seq Scan             | Index Only Scan
+Q3    |    91.493   |    1.851   |   ~49x  | Seq Scan x2          | Index Scan x2 + Nested Loop
+Q4    |    73.891   |    4.251   |   ~17x  | Seq Scan             | Index Only Scan
+Q5    |     0.058   |    0.055   |    1x   | Index Scan (PK)      | Index Scan (PK) -- no change
+Q6    |   105.489   |   12.503   |    ~8x  | Seq Scan + disk sort | Index Scan (sort eliminated)
+Q7    |   145.703   |  146.512   |    1x   | Seq Scan (audit)     | Seq Scan -- no change
+Q8    |    56.142   |    1.631   |   ~34x  | Seq Scan             | Index Only Scan
+
+Notes:
+  - Q5 unchanged: pre-existing UNIQUE index already optimal; no new index targets it.
+  - Q7 unchanged: full-table audit scan required by query semantics; no index helps.
+  - Q6 improvement limited vs Q1/Q2/Q8 because the Hash Join on accounts still runs;
+    the key gain is elimination of the 12 MB external-merge disk sort.
+  - All Index Only Scan nodes show Heap Fetches = 0, confirming VACUUM (ANALYZE)
+    set the all-visible bits correctly on both tables.
