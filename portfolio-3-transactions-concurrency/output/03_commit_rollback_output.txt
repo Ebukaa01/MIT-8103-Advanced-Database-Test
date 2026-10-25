@@ -1,0 +1,191 @@
+       demo_step       
+-----------------------
+ === Starting balances
+(1 row)
+
+ account_number |   balance    
+----------------+--------------
+ 2200001001     | 1003223.2700
+ 2200001002     | 1025972.1600
+(2 rows)
+
+                    demo_step                    
+-------------------------------------------------
+ === Demo 1: COMMIT. Transfer 100.00 and keep it
+(1 row)
+
+BEGIN
+ transaction_id 
+----------------
+         206104
+(1 row)
+
+                               state                                
+--------------------------------------------------------------------
+ --- inside transaction (uncommitted, visible only to this session)
+(1 row)
+
+ account_number |   balance    
+----------------+--------------
+ 2200001001     | 1003123.2700
+ 2200001002     | 1026072.1600
+(2 rows)
+
+COMMIT
+                state                 
+--------------------------------------
+ --- after COMMIT (permanent on disk)
+(1 row)
+
+ account_number |   balance    
+----------------+--------------
+ 2200001001     | 1003123.2700
+ 2200001002     | 1026072.1600
+(2 rows)
+
+                        demo_step                         
+----------------------------------------------------------
+ === Demo 2: ROLLBACK. Transfer 100.00, then undo changes
+(1 row)
+
+BEGIN
+ transaction_id 
+----------------
+         206105
+(1 row)
+
+                             state                              
+----------------------------------------------------------------
+ --- inside transaction (money has moved in transaction buffer)
+(1 row)
+
+ account_number |   balance    
+----------------+--------------
+ 2200001001     | 1003023.2700
+ 2200001002     | 1026172.1600
+(2 rows)
+
+ROLLBACK
+                              state                              
+-----------------------------------------------------------------
+ --- after ROLLBACK (balances restored to pre-transaction state)
+(1 row)
+
+ account_number |   balance    
+----------------+--------------
+ 2200001001     | 1003123.2700
+ 2200001002     | 1026072.1600
+(2 rows)
+
+                                audit_check                                 
+----------------------------------------------------------------------------
+ --- verify zero trace of aborted transaction remains in transactions table
+(1 row)
+
+ rows_for_rolled_back_key 
+--------------------------
+                        0
+(1 row)
+
+                           demo_step                            
+----------------------------------------------------------------
+ === Demo 3: Automatic rollback on failure (insufficient funds)
+(1 row)
+
+DO
+                        state                         
+------------------------------------------------------
+ --- balances remain completely unchanged after error
+(1 row)
+
+ account_number |   balance    
+----------------+--------------
+ 2200001001     | 1003123.2700
+ 2200001002     | 1026072.1600
+(2 rows)
+
+ rows_for_failed_key 
+---------------------
+                   0
+(1 row)
+
+                               demo_step                               
+-----------------------------------------------------------------------
+ === Demo 4: Idempotency. Same request sent twice is applied only once
+(1 row)
+
+ first_call_txn_id 
+-------------------
+            206100
+(1 row)
+
+ retry_call_txn_id 
+-------------------
+            206100
+(1 row)
+
+ transactions_with_this_key 
+----------------------------
+                          1
+(1 row)
+
+ account_number |   balance    
+----------------+--------------
+ 2200001001     | 1003123.2700
+ 2200001002     | 1026072.1600
+(2 rows)
+
+                                 demo_step                                 
+---------------------------------------------------------------------------
+ === Demo 5: SAVEPOINT. Undo failed secondary transfer while keeping first
+(1 row)
+
+BEGIN
+ first_transfer_id 
+-------------------
+            206109
+(1 row)
+
+SAVEPOINT
+DO
+ROLLBACK
+                                  state                                   
+--------------------------------------------------------------------------
+ --- first transfer of 10.00 is still active and protected in transaction
+(1 row)
+
+ account_number |   balance    
+----------------+--------------
+ 2200001001     | 1003113.2700
+ 2200001002     | 1026082.1600
+(2 rows)
+
+COMMIT
+                        state                         
+------------------------------------------------------
+ --- after COMMIT: first transfer permanently applied
+(1 row)
+
+ account_number |   balance    
+----------------+--------------
+ 2200001001     | 1003113.2700
+ 2200001002     | 1026082.1600
+(2 rows)
+
+                              demo_step                               
+----------------------------------------------------------------------
+ === Double-entry audit trail: latest ledger entries for demo wallets
+(1 row)
+
+ transaction_id | account_number | direction |  amount  | balance_after |          created_at           
+----------------+----------------+-----------+----------+---------------+-------------------------------
+         206109 | 2200001002     | CREDIT    |  10.0000 |  1026082.1600 | 2026-10-23 23:43:34.057364+01
+         206109 | 2200001001     | DEBIT     |  10.0000 |  1003113.2700 | 2026-10-23 23:43:34.057315+01
+         206104 | 2200001002     | CREDIT    | 100.0000 |  1026072.1600 | 2026-10-23 23:43:33.957487+01
+         206104 | 2200001001     | DEBIT     | 100.0000 |  1003123.2700 | 2026-10-23 23:43:33.953082+01
+         206102 | 2200001002     | CREDIT    |  10.0000 |  1025972.1600 | 2026-10-23 01:26:51.37802+01
+         206102 | 2200001001     | DEBIT     |  10.0000 |  1003223.2700 | 2026-10-23 01:26:51.377991+01
+         206100 | 2200001002     | CREDIT    |  25.0000 |  1025962.1600 | 2026-10-23 01:26:51.375363+01
+         206100 | 2200001001     | DEBIT     |  25.0000 |  1003233.2700 | 2026-10-23 01:26:51.37534+01
+(8 rows)
+
