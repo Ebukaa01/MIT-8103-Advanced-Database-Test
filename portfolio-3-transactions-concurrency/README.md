@@ -145,11 +145,11 @@ The `screenshots/` directory contains visual proof of all experiments and databa
 | :--- | :--- | :--- |
 | **01** | [01_function_test.png](screenshots/01_function_test.png) | Compilation, installation, and smoke test of `transfer_funds()` and `transfer_funds_unordered()`. |
 | **02** | [02_commit_rollback_output.png](screenshots/02_commit_rollback_output.png) | Full execution output of `03_commit_rollback_demo.sql` demonstrating all 5 ACID scenarios. |
-| **03** | [03-demo_setup.png](screenshots/03-demo_setup.png) | Execution of `02_demo_setup.sql` establishing isolated 500.00 test wallets for Alice and Bob. |
+| **03** | [03-demo-accounts_setup.png](screenshots/03-demo-accounts_setup.png) | Execution of `02_demo_setup.sql` establishing isolated 500.00 test wallets for Alice and Bob. |
 | **04** | [04-experiment-lost-update.png](screenshots/04-experiment-lost-update.png) | Experiment 1: Terminal B overwriting Terminal A's deduction, leaving a 400.00 balance instead of 300.00. |
 | **05** | [05-experiment-waiting.png](screenshots/05-experiment-waiting.png) | Concurrency lock wait: Terminal B hanging while awaiting the release of Alice's row lock held by Terminal A. |
 | **06** | [06-experiment-unblocking.png](screenshots/06-experiment-unblocking.png) | Terminal C monitoring `pg_blocking_pids` showing PID `23916` blocked by `{21376}`, and instant unblocking on commit. |
-| **07** | [07-integrity check.png](screenshots/07-integrity%20check.png) | Baseline financial audit confirming global money conservation and zero initial imbalances. |
+| **07** | [07-integrity check-sql.png](screenshots/07-integrity%20check-sql.png) | Baseline financial audit confirming global money conservation and zero initial imbalances. |
 | **08** | [08-experiment-read-committed.png](screenshots/08-experiment-read-committed.png) | Experiment 2: Non-Repeatable Read under `READ COMMITTED` returning 500.00 then 200.00 in the same transaction. |
 | **09** | [09-experiment-repeatable_read.png](screenshots/09-experiment-repeatable_read.png) | Experiment 2 Fix: `REPEATABLE READ` snapshot isolation preserving balance consistency (500.00) despite concurrent commit. |
 | **10** | [10-experiment-deadlock.png](screenshots/10-experiment-deadlock.png) | Experiment 4: PostgreSQL deadlock detector aborting transaction with `ERROR: deadlock detected (40P01)`. |
