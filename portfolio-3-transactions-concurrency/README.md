@@ -155,6 +155,7 @@ The `screenshots/` directory contains visual proof of all experiments and databa
 | **10** | [10-experiment-deadlock.png](screenshots/10-experiment-deadlock.png) | Experiment 4: PostgreSQL deadlock detector aborting transaction with `ERROR: deadlock detected (40P01)`. |
 | **11** | [11-stress-results.png](screenshots/11-stress-results.png) | Terminal execution of `pgbench` displaying 732.98 TPS (ordered) vs. 46.30 TPS (unordered). |
 | **12** | [12-integrity-check.png](screenshots/12-integrity-check.png) | Final audit verifying zero corrupted accounts and zero unbalanced ledger lines after 3,938 transfers. |
+| **13** | [13-insufficient funds.png](screenshots/13-insufficient%20funds.png) | Demonstration of `INSUFFICIENT_FUNDS` exception catching and automatic transactional rollback. |
 
 ---
 
