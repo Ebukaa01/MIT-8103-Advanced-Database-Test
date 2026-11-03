@@ -9,7 +9,7 @@
 | Module | Topic | Status | Link |
 | :--- | :--- | :--- | :--- |
 | **Portfolio 1** | **Database Design, Implementation & Integrity Validation** | **Completed** | [Portfolio 1 README](portfolio-1-database-design/README.md) |
-| **Portfolio 2** | Query Optimisation & Performance Tuning | Pending | [Portfolio 2](portfolio-2-query-optimisation/) |
+| **Portfolio 2** | **Query Optimisation & Performance Tuning** | **Completed** | [Portfolio 2 README](portfolio-2-query-optimisation/README.md) |
 | **Portfolio 3** | **Transactions, Concurrency Control & Isolation** | **Completed** | [Portfolio 3 README](portfolio-3-transactions-concurrency/README.md) |
 | **Portfolio 4** | **NoSQL & Polyglot Persistence** | **Completed** | [Portfolio 4 README](portfolio-4-nosql/README.md) |
 | **Portfolio 5** | **Distributed & Cloud Database Architectures** | **Completed** | [Portfolio 5 README](portfolio-5-distributed-cloud/README.md) |
