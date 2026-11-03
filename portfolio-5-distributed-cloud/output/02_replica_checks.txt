@@ -1,0 +1,41 @@
+=====================================================
+EQUITYPAY DISTRIBUTED DATABASE: READ REPLICA AUDIT
+=====================================================
+                                                       version                                                        
+----------------------------------------------------------------------------------------------------------------------
+ PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+(1 row)
+
+   database   |   user    | server_ip | server_port 
+--------------+-----------+-----------+-------------
+ equitypay_db | equitypay |           |            
+(1 row)
+
+ is_replica 
+------------
+ t
+(1 row)
+
+  status   | sender_host | sender_port |       slot_name        | latest_end_lsn |      last_msg_send_time       |     last_msg_receipt_time     
+-----------+-------------+-------------+------------------------+----------------+-------------------------------+-------------------------------
+ streaming | primary     |        5432 | equitypay_standby_slot | 0/1946B2C8     | 2026-11-03 21:03:06.618803+00 | 2026-11-03 21:03:06.618883+00
+(1 row)
+
+   table_name   | row_count 
+----------------+-----------
+ accounts       |      6001
+ beneficiaries  |     15000
+ cards          |      2993
+ customers      |      5001
+ fraud_flags    |       468
+ kyc_records    |      5100
+ ledger_entries |    404162
+ transactions   |    206096
+(8 rows)
+
+ unbalanced_transactions 
+-------------------------
+                       0
+(1 row)
+
+--- Testing Read-Only Enforcement (Expected Error) ---

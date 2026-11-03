@@ -1,0 +1,56 @@
+
+=====================================================================
+EQUITYPAY DISTRIBUTED ARCHITECTURE: MONGODB ATLAS CLOUD AUDIT
+Case Study: EquityPay Financial Services Ltd. (NoSQL Cloud Perimeter)
+=====================================================================
+
+1. CLOUD CONNECTION & ENGINE STATUS
+--------------------------------------------------
+Ping Status       : ONLINE (Success)
+Database Name     : equitypay_nosql
+MongoDB Version   : 8.0.36
+
+2. ATLAS CLUSTER REPLICA SET TOPOLOGY
+--------------------------------------------------
+Replica Set Name  : atlas-an1ghn-shard-0
+Current Node Role : PRIMARY (Writable Master)
+Active Primary    : ac-sibzzu6-shard-00-02.gpaq38x.mongodb.net:27017
+Connected Host    : ac-sibzzu6-shard-00-02.gpaq38x.mongodb.net:27017
+Topology Members  :
+  Node 1: ac-sibzzu6-shard-00-00.gpaq38x.mongodb.net:27017 [SECONDARY]
+  Node 2: ac-sibzzu6-shard-00-01.gpaq38x.mongodb.net:27017 [SECONDARY]
+  Node 3: ac-sibzzu6-shard-00-02.gpaq38x.mongodb.net:27017 [PRIMARY]
+Read Only Mode    : false
+Max Wire Version  : 25
+
+3. CLOUD DATABASE STORAGE STATISTICS
+--------------------------------------------------
+Collections Count : 3
+Total Documents   : 105001
+Data Size         : 17.152 MB
+Storage Allocated : 4.891 MB
+Total Indexes     : 7
+Total Index Size  : 5.215 MB
+
+4. PERIMETER DATASET INVENTORY
+--------------------------------------------------
+Collection: kyc_profiles
+  Document Count : 5000
+  Indexes        : _id_, uq_kyc_customer
+Collection: audit_events
+  Document Count : 100000
+  Indexes        : _id_, idx_audit_customer_ts, idx_audit_type_ts
+Collection: login_sessions
+  Document Count : 1
+  Indexes        : _id_, ttl_session_1h
+
+5. DISTRIBUTED WRITE CONCERN & ACKNOWLEDGMENT TEST
+--------------------------------------------------
+Write Acknowledged : SUCCESS
+Inserted Heartbeat ID: 6aea25cd5e04e40d99f0ca10
+Write Concern Model: w: "majority" (Validated across quorum)
+
+=====================================================================
+ATLAS CLOUD INFRASTRUCTURE AUDIT COMPLETE
+=====================================================================
+

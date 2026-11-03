@@ -1,0 +1,73 @@
+services:
+  primary:
+    image: postgres:17
+    container_name: equitypay-pg-primary
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-equitypay_db}
+      POSTGRES_USER: ${POSTGRES_USER:-equitypay}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-equitypay_pass}
+      REPLICA_USER: ${REPLICA_USER:-replicator}
+      REPLICATION_PASSWORD: ${REPLICATION_PASSWORD:-replica_secure_pass}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    command: >
+      postgres
+      -c wal_level=replica
+      -c hot_standby=on
+      -c max_wal_senders=10
+      -c max_replication_slots=10
+      -c hot_standby_feedback=on
+      -c wal_log_hints=on
+    ports:
+      - "${PRIMARY_PORT:-5433}:5432"
+    volumes:
+      - primary_data:/var/lib/postgresql/data
+      - ./primary-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - equitypay-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-equitypay} -d ${POSTGRES_DB:-equitypay_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  replica:
+    image: postgres:17
+    container_name: equitypay-pg-replica
+    restart: unless-stopped
+    depends_on:
+      primary:
+        condition: service_healthy
+    environment:
+      PRIMARY_HOST: primary
+      PRIMARY_PORT: 5432
+      PGUSER: ${POSTGRES_USER:-equitypay}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-equitypay_pass}
+      REPLICA_USER: ${REPLICA_USER:-replicator}
+      REPLICATION_PASSWORD: ${REPLICATION_PASSWORD:-replica_secure_pass}
+      REPLICATION_SLOT: ${REPLICATION_SLOT:-equitypay_standby_slot}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    entrypoint: ["/usr/local/bin/replica-entrypoint.sh"]
+    ports:
+      - "${REPLICA_PORT:-5434}:5432"
+    volumes:
+      - replica_data:/var/lib/postgresql/data
+      - ./replica-entrypoint.sh:/usr/local/bin/replica-entrypoint.sh:ro
+    networks:
+      - equitypay-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-equitypay} -d ${POSTGRES_DB:-equitypay_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  primary_data:
+  replica_data:
+
+networks:
+  equitypay-network:
+    driver: bridge
+

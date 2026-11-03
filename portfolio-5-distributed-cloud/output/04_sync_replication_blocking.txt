@@ -1,0 +1,57 @@
+===================================================================================
+EQUITYPAY DISTRIBUTED ARCHITECTURE: SYNCHRONOUS REPLICATION & WRITE-BLOCKING DEMO
+===================================================================================
+
+1. CONFIGURING SYNCHRONOUS STANDBY
+-----------------------------------
+Command: ALTER SYSTEM SET synchronous_standby_names = 'walreceiver';
+Command: SELECT pg_reload_conf();
+
+State on Primary (pg_stat_replication):
+ application_name |   state   | sync_state | sync_priority 
+------------------+-----------+------------+---------------
+ walreceiver      | streaming | sync       |             1
+(1 row)
+
+2. SIMULATING STANDBY NODE OUTAGE
+----------------------------------
+Command: docker stop equitypay-replica
+Status: Standby replica terminated. Synchronous standby is unavailable.
+
+3. EXECUTING WRITE ON PRIMARY UNDER REPLICA OUTAGE
+---------------------------------------------------
+Query: INSERT INTO replication_marker(note) VALUES ('sync write, replica DOWN');
+
+Observing pg_stat_activity on Primary:
+ pid  | query                                                                 | state  | wait_event_type | wait_event 
+------+-----------------------------------------------------------------------+--------+-----------------+------------
+ 2572 | INSERT INTO replication_marker(note) VALUES ('sync write, ...');      | active | IPC             | SyncRep
+(1 row)
+
+FINDING:
+The write operation on the primary immediately blocked (hung).
+Under strict Synchronous Replication (CAP Theorem Consistency > Availability guarantee), 
+PostgreSQL refuses to commit or return success to the client until the synchronous standby
+confirms receipt and disk flush of the WAL records. The backend enters IPC wait event 'SyncRep'.
+
+4. RESTORING STANDBY REPLICA
+----------------------------
+Command: docker start equitypay-replica
+Result: Container restarted. Standby connects and initiates streaming recovery.
+
+5. UNBLOCKING & IMMEDIATE COMMIT
+--------------------------------
+Output: INSERT 0 1
+The blocked write transaction immediately completes upon receiving standby acknowledgment.
+
+6. FINAL PARITY CONFIRMATION (Primary & Replica)
+------------------------------------------------
+SELECT * FROM replication_marker;
+ id |                  note                  |          created_at           
+----+----------------------------------------+-------------------------------
+  1 | written on primary                     | 2026-11-03 16:58:17.341462+00
+  2 | written while replica is paused        | 2026-11-03 17:00:47.945758+00
+  3 | sync write, replica DOWN               | 2026-11-03 17:10:32.486018+00
+  4 | sync write, unblocked on replica start | 2026-11-03 17:10:50.233447+00
+(4 rows)
+

@@ -1,0 +1,65 @@
+=====================================================
+EQUITYPAY DISTRIBUTED DATABASE: PRIMARY NODE AUDIT
+=====================================================
+                                                       version                                                        
+----------------------------------------------------------------------------------------------------------------------
+ PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+(1 row)
+
+   database   |   user    | server_ip | server_port 
+--------------+-----------+-----------+-------------
+ equitypay_db | equitypay |           |            
+(1 row)
+
+ is_replica 
+------------
+ f
+(1 row)
+
+ wal_level 
+-----------
+ replica
+(1 row)
+
+ hot_standby 
+-------------
+ on
+(1 row)
+
+ max_wal_senders 
+-----------------
+ 10
+(1 row)
+
+ max_replication_slots 
+-----------------------
+ 10
+(1 row)
+
+  pid  |  usename   | application_name | client_addr | client_port |   state   | sync_state | sync_priority 
+-------+------------+------------------+-------------+-------------+-----------+------------+---------------
+ 11415 | replicator | walreceiver      | 172.18.0.3  |       51740 | streaming | async      |             0
+(1 row)
+
+       slot_name        | plugin | slot_type | active | wal_status 
+------------------------+--------+-----------+--------+------------
+ equitypay_standby_slot |        | physical  | t      | reserved
+(1 row)
+
+ application_name | client_addr | primary_current_wal_lsn |  sent_lsn  | write_lsn  | flush_lsn  | replay_lsn | replication_lag_bytes 
+------------------+-------------+-------------------------+------------+------------+------------+------------+-----------------------
+ walreceiver      | 172.18.0.3  | 0/1946B2C8              | 0/1946B2C8 | 0/1946B2C8 | 0/1946B2C8 | 0/1946B2C8 |                     0
+(1 row)
+
+   table_name   | row_count 
+----------------+-----------
+ accounts       |      6001
+ beneficiaries  |     15000
+ cards          |      2993
+ customers      |      5001
+ fraud_flags    |       468
+ kyc_records    |      5100
+ ledger_entries |    404162
+ transactions   |    206096
+(8 rows)
+

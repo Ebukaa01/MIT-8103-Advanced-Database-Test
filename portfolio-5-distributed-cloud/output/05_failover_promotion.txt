@@ -1,0 +1,60 @@
+===================================================================================
+EQUITYPAY DISTRIBUTED ARCHITECTURE: HIGH-AVAILABILITY FAILOVER & REPLICA PROMOTION
+===================================================================================
+
+1. SIMULATING PRIMARY OUTAGE
+----------------------------
+Command: docker stop equitypay-pg-primary
+Result: Primary node is offline. Standby loses WAL streaming connection.
+
+2. PRE-PROMOTION AUDIT ON REPLICA
+---------------------------------
+Query: SELECT pg_is_in_recovery();
+ pg_is_in_recovery 
+-------------------
+ t
+(1 row)
+Finding: Replica confirms it is still in read-only recovery mode.
+
+3. EXECUTING FAILOVER PROMOTION
+-------------------------------
+Query: SELECT pg_promote();
+ pg_promote 
+------------
+ t
+(1 row)
+Finding: PostgreSQL initiates timeline change (Timeline 1 -> Timeline 2) and exits recovery.
+
+4. POST-PROMOTION ROLE VERIFICATION
+-----------------------------------
+Query: SELECT pg_is_in_recovery();
+ pg_is_in_recovery 
+-------------------
+ f
+(1 row)
+Finding: The standby replica is now the new standalone READ-WRITE PRIMARY.
+
+5. VERIFYING WRITE CAPABILITY ON PROMOTED NODE
+----------------------------------------------
+Query: INSERT INTO replication_marker(note) VALUES ('written on promoted replica') RETURNING id, note;
+ id |            note             
+----+-----------------------------
+ 36 | written on promoted replica
+(1 row)
+INSERT 0 1
+
+6. FULL REPLICATION MARKER AUDIT
+--------------------------------
+Query: SELECT * FROM replication_marker;
+ id |                  note                  |          created_at           
+----+----------------------------------------+-------------------------------
+  1 | written on primary                     | 2026-11-03 16:58:17.341462+00
+  2 | written while replica is paused        | 2026-11-03 17:00:47.945758+00
+  3 | sync write, replica DOWN               | 2026-11-03 17:10:32.486018+00
+  4 | sync write, unblocked on replica start | 2026-11-03 17:10:50.233447+00
+ 36 | written on promoted replica            | 2026-11-03 17:34:30.540224+00
+(5 rows)
+
+FINDING:
+Promotion completed with zero data loss (RPO = 0) and instantaneous failover (RTO < 2s).
+

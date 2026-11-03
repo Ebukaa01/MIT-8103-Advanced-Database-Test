@@ -1,0 +1,101 @@
+=====================================================================
+PORTFOLIO 5: DECLARATIVE PARTITIONING & HORIZONTAL SHARDING SUITE
+Case Study: EquityPay Financial Services Ltd.
+=====================================================================
+BEGIN
+--- 1. Creating Declarative RANGE Partitioned Table: transactions_partitioned ---
+DROP TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+INSERT 0 206096
+COMMIT
+ANALYZE
+--- 2. Partition Inventory, Row Distribution & Physical Disk Footprint ---
+    partition_name    |                           partition_expression                           | estimated_rows | total_size 
+----------------------+--------------------------------------------------------------------------+----------------+------------
+ transactions_2024    | FOR VALUES FROM ('2024-01-01 00:00:00+00') TO ('2025-01-01 00:00:00+00') |            508 | 232 kB
+ transactions_2025    | FOR VALUES FROM ('2025-01-01 00:00:00+00') TO ('2026-01-01 00:00:00+00') |          35292 | 9368 kB
+ transactions_2026    | FOR VALUES FROM ('2026-01-01 00:00:00+00') TO ('2027-01-01 00:00:00+00') |         170296 | 44 MB
+ transactions_default | DEFAULT                                                                  |              0 | 32 kB
+(4 rows)
+
+         partition_slice          | actual_rows 
+----------------------------------+-------------
+ transactions_default             |           0
+ transactions_2024                |         508
+ transactions_2025                |       35292
+ transactions_2026                |      170296
+ TOTAL (transactions_partitioned) |      206096
+(5 rows)
+
+--- 3A. Query Execution Plan: Single Partition Pruning (2025 Only) ---
+                                                                                QUERY PLAN                                                                                
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate (actual time=0.409..0.410 rows=1 loops=1)
+   ->  Bitmap Heap Scan on transactions_2025 transactions_partitioned (actual time=0.073..0.312 rows=578 loops=1)
+         Recheck Cond: ((initiated_at >= '2025-06-01 00:00:00+00'::timestamp with time zone) AND (initiated_at < '2025-07-01 00:00:00+00'::timestamp with time zone))
+         Heap Blocks: exact=79
+         ->  Bitmap Index Scan on transactions_2025_initiated_at_idx (actual time=0.053..0.053 rows=578 loops=1)
+               Index Cond: ((initiated_at >= '2025-06-01 00:00:00+00'::timestamp with time zone) AND (initiated_at < '2025-07-01 00:00:00+00'::timestamp with time zone))
+ Planning Time: 0.347 ms
+ Execution Time: 0.439 ms
+(8 rows)
+
+--- 3B. Query Execution Plan: Single Partition Pruning (2026 Active Production) ---
+                                                                                QUERY PLAN                                                                                
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ HashAggregate (actual time=17.145..17.148 rows=2 loops=1)
+   Group Key: transactions_partitioned.txn_type
+   Batches: 1  Memory Usage: 24kB
+   ->  Bitmap Heap Scan on transactions_2026 transactions_partitioned (actual time=2.527..10.342 rows=17037 loops=1)
+         Recheck Cond: ((initiated_at >= '2026-03-01 00:00:00+00'::timestamp with time zone) AND (initiated_at < '2026-04-01 00:00:00+00'::timestamp with time zone))
+         Heap Blocks: exact=2602
+         ->  Bitmap Index Scan on transactions_2026_initiated_at_idx (actual time=2.034..2.034 rows=17037 loops=1)
+               Index Cond: ((initiated_at >= '2026-03-01 00:00:00+00'::timestamp with time zone) AND (initiated_at < '2026-04-01 00:00:00+00'::timestamp with time zone))
+ Planning Time: 0.395 ms
+ Execution Time: 17.188 ms
+(10 rows)
+
+--- 4. Creating Declarative LIST Partitioned Table: regional_customers ---
+BEGIN
+DROP TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+INSERT 0 5001
+COMMIT
+ANALYZE
+--- 5. Regional Customer Distribution Across Geographic Nodes ---
+   regional_shard   |          routing_rule           | customer_count | shard_disk_size 
+--------------------+---------------------------------+----------------+-----------------
+ customers_lagos    | FOR VALUES IN ('LAGOS')         |           1000 | 312 kB
+ customers_abuja    | FOR VALUES IN ('ABUJA')         |           1001 | 296 kB
+ customers_kano     | FOR VALUES IN ('KANO')          |           1000 | 296 kB
+ customers_ph       | FOR VALUES IN ('PORT_HARCOURT') |           1000 | 328 kB
+ customers_diaspora | DEFAULT                         |           1000 | 328 kB
+(5 rows)
+
+--- 6. Geographic Partition Pruning Demonstration (Lagos Shard Only) ---
+                                         QUERY PLAN                                          
+---------------------------------------------------------------------------------------------
+ Seq Scan on customers_lagos regional_customers (actual time=0.023..0.846 rows=1000 loops=1)
+   Filter: (((region)::text = 'LAGOS'::text) AND ((status)::text = 'ACTIVE'::text))
+ Planning Time: 0.435 ms
+ Execution Time: 0.974 ms
+(4 rows)
+
+--- 7. Data Parity & Conservation Audit ---
+          dataset          | total_rows |  total_volume   
+---------------------------+------------+-----------------
+ transactions (monolithic) |     206096 | 6510409351.3200
+ transactions_partitioned  |     206096 | 6510409351.3200
+(2 rows)
+

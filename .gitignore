@@ -1,0 +1,14 @@
+# Environment variables and credentials
+.env
+*.env
+.env.*
+!.env.example
+
+# Database dumps
+equitypay_dump.sql
+*dump*.sql
+*.dump.sql
+*.dump
+*.tar
+*.gz
+

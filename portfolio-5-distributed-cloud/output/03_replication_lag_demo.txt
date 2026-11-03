@@ -1,0 +1,75 @@
+=====================================================================
+EQUITYPAY DISTRIBUTED ARCHITECTURE: REPLICATION LAG & STALE READ DEMO
+=====================================================================
+
+1. INITIAL STATE
+----------------
+Primary count: 1
+Replica count: 1
+
+2. PAUSING WAL REPLAY ON REPLICA
+--------------------------------
+Query: SELECT pg_wal_replay_pause();
+Result:
+ pg_wal_replay_pause 
+---------------------
+(1 row)
+
+3. INSERTING TRANSACTION ON PRIMARY WHILE REPLICA REPLAY IS PAUSED
+-------------------------------------------------------------------
+Query: INSERT INTO replication_marker(note) VALUES ('written while replica is paused');
+Result: INSERT 0 1
+
+4. STALE READ DISCREPANCY AUDIT
+--------------------------------
+Query Primary: SELECT count(*) FROM replication_marker;
+ primary_count 
+---------------
+             2
+(1 row)
+
+Query Replica: SELECT count(*) FROM replication_marker;
+ replica_count 
+---------------
+             1
+(1 row)
+
+Replica Pause State:
+ pg_is_wal_replay_paused 
+-------------------------
+ t
+(1 row)
+
+Replication Lag on Primary:
+ application_name | client_addr | replay_lag_bytes 
+------------------+-------------+------------------
+ walreceiver      | 172.18.0.3  |              528
+(1 row)
+
+FINDING: Standby replica serves stale read (Count: 1 vs Primary: 2) with 528 bytes replay lag.
+
+5. RESUMING WAL REPLAY ON REPLICA
+----------------------------------
+Query: SELECT pg_wal_replay_resume();
+Result:
+ pg_wal_replay_resume 
+----------------------
+(1 row)
+
+6. EVENTUAL CONSISTENCY RECOVERY VERIFICATION
+---------------------------------------------
+Query Replica: SELECT count(*) FROM replication_marker;
+ replica_count_after_resume 
+----------------------------
+                          2
+(1 row)
+
+Query Replica: SELECT * FROM replication_marker;
+ id |              note               |          created_at           
+----+---------------------------------+-------------------------------
+  1 | written on primary              | 2026-11-03 16:58:17.341462+00
+  2 | written while replica is paused | 2026-11-03 17:00:47.945758+00
+(2 rows)
+
+FINDING: Replica caught up immediately upon resumption, reaching 100% convergence.
+
