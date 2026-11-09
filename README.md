@@ -143,3 +143,9 @@ Portfolio 4: NoSQL and Advanced Data Models	7 Marks	Completed (100%) ✅	3 colle
 Portfolio 5: Distributed and Cloud Databases	6 Marks	Completed (100%) ✅	Streaming replication active; failover drill passed; read-routing simulator; RTO < 5m backup drill.
 Synthesis & Submission Deliverables	6 Marks	Completed (100%) ✅	Final Executive Report, AI Declaration, Bibliography, and LMS submission folder ready.
 Total Continuous Assessment Scope	40 Marks	ALL COMPLETED (100%) ✅	Full Academic Requirements Satisfied
+
+
+| Header 1 | Header 2 | Header 3 |
+| -------- | -------- | -------- |
+| Row 1 A  | Row 1 B  | Row 1 C  |
+| Row 2 A  | Row 2 B  | Row 2 C  |
