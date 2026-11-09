@@ -182,9 +182,10 @@ python3 portfolio-5-distributed-cloud/05_read_latency_benchmark.py
 
 ---
 
-## 7. Academic Integrity & AI-Use Declaration
+## 7. Academic Integrity, Contributor Disclosure & AI-Use Declaration
 
 All database schemas, queries, optimization indexes, benchmarking harnesses, and architectural documentation were designed and executed by **Chukwuebuka Azuh** (Student ID: 301906536) for **MIT 8103 Advanced Database Systems** at **Miva Open University**:
 
 * **Synthetic Data:** All customer profiles, account numbers, BVNs, NINs, email addresses, and financial transaction records generated for EquityPay Financial Services Ltd. are 100% synthetic and fictitious. No real customer or banking data was used.
+* **Workstation / Contributor Disclosure:** The alternative git contributor shown in earlier commits was as a result of the author's primary laptop encountering hardware faults during the project timeline, requiring a temporary workstation migration to finish up the portfolio deliverables.
 * **AI Assistance:** Generative AI tools (Google DeepMind Antigravity / Gemini) were utilized as technical pair-programming assistants for drafting synthetic data generation scripts, catalog diagnostics, and markdown table formatting. All database designs, SQL constraints, transaction lock strategies, failover simulations, and benchmark evaluations were independently verified and executed by the author. A full academic bibliography and AI disclosure are provided in [`reference.md`](./reference.md) and [`FINAL_DOCUMENTATION.md`](./FINAL_DOCUMENTATION.md).
