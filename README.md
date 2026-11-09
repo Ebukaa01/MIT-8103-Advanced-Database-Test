@@ -135,7 +135,7 @@ All customer profiles, account numbers, BVNs, NINs, email addresses, and financi
 
 ## 7. Current Project Status
 
-Portfolio Milestone	Target Marks	Completion Status	Evidence & Test Verification
+Portfolio Milestone	Target Marks	|Completion Status	Evidence & Test Verification
 Portfolio 1: Database Design and Modelling	7 Marks	Completed (100%) ✅	All 6 tables created; 11 constraint tests passing; 3NF/BCNF proven; ERD exported.
 Portfolio 2: Query Processing and Optimisation	7 Marks	Completed (100%) ✅	10 queries profiled; B-tree/partial indexes created; EXPLAIN ANALYZE benchmarks recorded.
 Portfolio 3: Transactions and Concurrency Control	7 Marks	Completed (100%) ✅	ACID exercises A–G verified; deadlock-free lock ordering; 10-client pgbench test (500 txns).
