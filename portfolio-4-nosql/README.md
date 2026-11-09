@@ -2,27 +2,68 @@
 ## Portfolio 4: NoSQL & Polyglot Persistence Architecture
 ### Case Study: EquityPay Financial Services Ltd.
 
-**Candidate**: Ebuka  
-**Database Systems**: PostgreSQL 18 (Relational Core) & MongoDB Atlas (Document Perimeter)  
+**Candidate**: Chukwuebuka Azuh  
+**Student ID**: 301906536  
+**Degree**: Master of Science in Information Technology (M.Sc. IT)  
+**Database Systems**: PostgreSQL 18 (Relational Core) & MongoDB Atlas 8.0 (Document Perimeter)  
 
 ---
 
-## 1. Executive Overview
+## 1. Executive Summary & Polyglot Architecture
 
-In enterprise financial technology, modern digital banking platforms cannot be architected as monolithic single-database systems. A single storage paradigm cannot simultaneously optimize for the mathematically rigid, zero-tolerance guarantees of a double-entry financial ledger and the high-velocity, polymorphic demands of customer identity verification and real-time audit logging.
+Modern enterprise fintech platforms cannot survive on a monolithic single-database architecture. A single storage paradigm cannot simultaneously satisfy the mathematically rigid, zero-tolerance guarantees of a double-entry banking ledger and the high-velocity, polymorphic demands of customer onboarding (KYC), real-time fraud telemetry, and ephemeral session tracking.
 
-**Portfolio 4** explores **Polyglot Persistence** within **EquityPay Financial Services Ltd.**, establishing a complementary architecture between:
+**Portfolio 4** establishes and benchmarks a **Polyglot Persistence Architecture** for **EquityPay Financial Services Ltd.**, delegating responsibilities based on foundational engine strengths:
 
 1. **PostgreSQL 18 (The System of Record / Ledger Core)**:
    - Manages customers, accounts, double-entry bookkeeping journals (`ledger_entries`), and transactional money movement.
-   - Prioritizes strict ACID compliance, declarative referential integrity, and mathematical balance conservation.
-2. **MongoDB Atlas (The Operational & Telemetry Perimeter)**:
+   - Enforces strict ACID compliance, declarative referential integrity (`FOREIGN KEY ... ON DELETE RESTRICT`), and mathematical balance conservation ($\sum \text{Debits} - \sum \text{Credits} = 0.0000$).
+2. **MongoDB Atlas 8.0 (The Operational & Telemetry Perimeter)**:
    - Manages tiered KYC identity document portfolios (`kyc_profiles`), append-only security telemetry (`audit_events`), and ephemeral token caches (`login_sessions`).
    - Prioritizes schema polymorphism, nested document modeling, high-throughput time-series ingestion, and automated data lifecycle management via TTL indexes.
 
+```
+                    +------------------------------------------------+
+                    |             EquityPay API Gateway              |
+                    +-----------------------+------------------------+
+                                            |
+                    +-----------------------+------------------------+
+                    |                                                |
+          [Financial Movements]                            [Identity & Telemetry]
+                    |                                                |
+                    v                                                v
+    +-------------------------------+                +-------------------------------+
+    |         PostgreSQL 18         |                |       MongoDB Atlas 8.0       |
+    |      (System of Record)       |                |     (Perimeter & Streams)     |
+    +-------------------------------+                +-------------------------------+
+    | • accounts                    |                | • kyc_profiles                |
+    | • transactions                |                | • audit_events                |
+    | • ledger_entries              |                | • login_sessions              |
+    |                               |                |                               |
+    | Strict ACID & Foreign Keys    |                | Polymorphic BSON Documents    |
+    | Exact NUMERIC(19,4) Math      |                | High-Throughput Ingestion     |
+    | Row-Level MVCC Locking        |                | TTL Auto-Expiring Caches      |
+    +-------------------------------+                +-------------------------------+
+```
+
 ---
 
-## 2. Directory Structure
+## 2. Architectural Data Divisions: PostgreSQL vs. MongoDB
+
+The division of data between relational and document storage at EquityPay follows strict architectural boundaries:
+
+| Data Entity | Primary Database | Storage Model | Justification & Architectural Boundary |
+| :--- | :--- | :--- | :--- |
+| **Accounts & Balances** | PostgreSQL 18 | Relational (3NF) | Zero tolerance for balance corruption. Requires database-level `CHECK (balance >= 0)` constraints and atomic serializability. |
+| **Double-Entry Journal** | PostgreSQL 18 | Relational (3NF) | Strict mathematical invariant: $\sum \text{Debits} - \sum \text{Credits} = 0$. Enforced across multiple rows inside atomic `BEGIN ... COMMIT` blocks. |
+| **Money Transfers** | PostgreSQL 18 | Relational (3NF) | Deterministic pessimistic row locks (`SELECT ... FOR UPDATE`) ordered by primary key (`LEAST()` / `GREATEST()`) to mathematically eliminate deadlocks. |
+| **KYC Identity Profiles** | MongoDB Atlas | Document (`$jsonSchema`) | Polymorphic schema: Tier 1 customers provide only a BVN; Tier 3 customers submit passports, CAC business filings, and utility bills. Stored hierarchically without relational join bloat. |
+| **Security Audit Events** | MongoDB Atlas | Append-Only Stream | High-ingestion telemetry (logins, IP geolocation, fraud triggers). Append-only design (`INSERT`, never `UPDATE` or `DELETE`) optimized for rapid writes and horizontal sharding. |
+| **Session Cache** | MongoDB Atlas | Ephemeral Document | Short-lived auth tokens requiring automated time-based eviction via WiredTiger Time-To-Live (TTL) thread. |
+
+---
+
+## 3. Directory Structure & Execution Artifacts
 
 ```
 portfolio-4-nosql/
@@ -30,160 +71,244 @@ portfolio-4-nosql/
 ├── 02_seed_data.js              # High-performance batch seeding (5,000 KYC profiles & 100,000 audit events)
 ├── 03_crud_and_aggregation.js   # Rich CRUD queries, nested document updates, and 4 aggregation pipelines
 ├── 04_indexes_explain.js        # Compound, unique, and TTL indexes with explain('executionStats') evaluation
-├── README.md                    # In-depth architectural analysis (SQL vs. NoSQL) and execution guide
+├── docker-compose.yml           # Optional local containerized MongoDB 7 deployment configuration
+├── .env.example                 # Environment configuration template
+├── README.md                    # In-depth architectural analysis and empirical report
 ├── output/                      # Raw execution evidence logs
 │   ├── 03_crud_and_aggregation.txt
 │   └── 04_indexes_explain.txt
-└── screenshots/                 # Atlas and terminal execution captures
+└── screenshots/                 # Terminal and Atlas verification evidence captures
+    ├── Chukwuebuka_Azuh_301906536_schema_validation.png
+    ├── Chukwuebuka_Azuh_301906536_seed_verification.png
+    ├── Chukwuebuka_Azuh_301906536_CRUD.png
+    ├── Chukwuebuka_Azuh_301906536_aggregation.png
+    ├── Chukwuebuka_Azuh_301906536_explain metrics_session clearing.png
+    └── Chukwuebuka_Azuh_301906536_directory.png
 ```
 
 ---
 
-## 3. Deep Architectural Analysis: SQL (PostgreSQL) vs. Document NoSQL (MongoDB)
+## 4. Collection Design & Schema Validation (`$jsonSchema`)
 
-| Architectural Dimension | PostgreSQL 18 (Relational) | MongoDB Atlas (Document NoSQL) | Optimal Role in EquityPay |
-| :--- | :--- | :--- | :--- |
-| **Data Model** | Normalized tabular relations (3NF/BCNF) | Hierarchical JSON/BSON documents | Core Ledger vs. Customer Perimeter |
-| **Consistency Model** | Immediate Consistency (ACID) | Tunable Consistency (ACID $\leftrightarrow$ BASE) | Balance Integrity vs. High-Volume Audit |
-| **Transaction Scope** | Multi-table atomic transactions by default | Single-document atomic; multi-document via sessions | Monetary transfers vs. Telemetry ingestion |
-| **Schema Governance** | Strict, compile-time catalog DDL | Dynamic schema with optional `$jsonSchema` | Fixed currency fields vs. Polymorphic KYC |
-| **Relationships** | Declarative foreign keys (`ON DELETE RESTRICT`) | Application-level `$lookup` or embedding | Audited entity graphs vs. Self-contained docs |
-| **Scaling Strategy** | Vertical scaling + read replication | Horizontal sharding across replica sets | Bounded ledger rows vs. Unbounded event logs |
+While MongoDB is inherently schema-flexible, financial identity data requires strict regulatory boundaries. In [`01_schema_validation.js`](01_schema_validation.js), EquityPay establishes governed flexibility using BSON `$jsonSchema` validators with `validationAction: 'error'`.
 
----
+### 4.1 Schema Definitions
 
-### 3.1 ACID Guarantees & Multi-Document Transactions
+1. **`kyc_profiles`**:
+   - **Fields**: `customer_id` (int, min 1), `tier` (int, 1–3), `status` (enum: `PENDING`, `VERIFIED`, `REJECTED`), `documents` (array of subdocuments), `created_at` (date).
+   - **Document Structure**: Subdocuments require `type` (`BVN`, `NIN`, `PASSPORT`, `DRIVERS_LICENCE`, `UTILITY_BILL`) and `number` (string).
+2. **`audit_events`**:
+   - **Fields**: `customer_id` (int), `event_type` (enum: `LOGIN_SUCCESS`, `LOGIN_FAILED`, `PIN_CHANGED`, `TRANSFER_INITIATED`, `KYC_UPGRADED`, `FRAUD_FLAG`), `ts` (date), `details` (arbitrary JSON object).
+3. **`login_sessions`**:
+   - **Fields**: `customer_id` (int), `token` (string), `created_at` (date). Governed by a 3600-second TTL index.
 
-- **PostgreSQL**:
-  - ACID is the foundational engine assumption. Every `BEGIN ... COMMIT` block guarantees that mutations across multiple tables (`accounts`, `transactions`, `ledger_entries`) either commit in whole or cleanly roll back.
-  - Concurrency is governed by multi-version concurrency control (MVCC) and deterministic pessimistic row locking (`SELECT ... FOR UPDATE`).
-  - Cross-account transfers maintain global resource ordering (`LEAST()` and `GREATEST()` primary keys), eliminating deadlocks mathematically.
+### 4.2 Negative Validation Test
+To verify that non-compliant documents cannot bypass the database perimeter, an intentionally invalid profile was submitted:
 
-- **MongoDB**:
-  - Single-document writes are always atomic (even when modifying deeply nested arrays like `documents: []`).
-  - While MongoDB introduced multi-document transactions in version 4.0, distributed transactions across shards incur significant latency penalties, require multi-phase commit coordination across WiredTiger storage engines, consume heavy write cache memory, and enforce a strict 60-second transaction lifetime limit.
-  - In a fintech ledger, relying on distributed MongoDB transactions for high-frequency peer-to-peer transfers introduces severe lock escalation risks and unpredictable abort rates during shard rebalancing.
+```javascript
+nosql.kyc_profiles.insertOne({ customer_id: 1, status: 'MAYBE' });
+```
+- **Engine Response**: Immediately rejected with **`DocumentValidationFailure` (code `121`)**.
+- **Security Implication**: Client-side validation bugs cannot compromise database integrity.
 
 ---
 
-### 3.2 Joins vs. Embedding & Denormalization
+## 5. Aggregation Pipelines & Business Intelligence
 
-- **Relational Joins (PostgreSQL)**:
-  - Relations are fully normalized to eliminate data redundancy and update anomalies.
-  - The database engine optimizes joins using sophisticated cost-based algorithms (Hash Joins, Merge Joins, Index Nested Loops).
-  - Referential integrity is declaratively enforced by the database engine: you cannot delete a customer who has open accounts (`ON DELETE RESTRICT`).
+In [`03_crud_and_aggregation.js`](03_crud_and_aggregation.js), four aggregation pipelines evaluate operational telemetry and link the document perimeter with customer relational identifiers:
 
-- **Embedding & `$lookup` (MongoDB)**:
-  - In MongoDB, relationships that are retrieved together are stored together. A customer's KYC profile embeds their verification documents (BVN, NIN, Passport, Utility Bill) directly inside an array of subdocuments.
-  - Fetching a customer profile requires a single seek (`_id: 1` or `customer_id: 1`), eliminating expensive relational joins completely.
-  - While `$lookup` provides left-outer-join functionality (as demonstrated in `03_crud_and_aggregation.js`), it performs join resolution at the query execution level without declarative constraints: MongoDB cannot natively prevent orphaned audit events if a customer document is deleted.
+### Pipeline 1: 30-Day Event Volume by Category
+- **Business Intent**: Quantify platform activity and monitor authentication vs. money movement volume over the trailing 30 days.
+- **Pipeline Architecture**:
+  ```javascript
+  [
+    { $match: { ts: { $gte: new Date(Date.now() - 30 * 86400000) } } },
+    { $group: { _id: '$event_type', events: { $sum: 1 } } },
+    { $sort: { events: -1 } }
+  ]
+  ```
+- **Live Output**:
+  - `TRANSFER_INITIATED`: 8,294 events
+  - `LOGIN_SUCCESS`: 8,190 events
+  - `PIN_CHANGED`: 4,272 events
+  - `KYC_UPGRADED`: 4,152 events
+  - `FRAUD_FLAG`: 4,130 events
+  - `LOGIN_FAILED`: 4,104 events
+
+### Pipeline 2: Daily Transaction Volume Trend
+- **Business Intent**: Calculate daily aggregate transfer counts and gross initiated volume in Naira (₦) for executive financial dashboards.
+- **Pipeline Architecture**:
+  ```javascript
+  [
+    { $match: { event_type: 'TRANSFER_INITIATED' } },
+    { $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$ts' } },
+        transfers: { $sum: 1 },
+        total_amount: { $sum: '$details.amount' } } },
+    { $sort: { _id: -1 } },
+    { $limit: 5 }
+  ]
+  ```
+- **Live Output**:
+  - `2026-11-09`: 200 transfers, Total = ₦2,760,500
+  - `2026-11-08`: 277 transfers, Total = ₦3,552,500
+  - `2026-11-07`: 279 transfers, Total = ₦3,631,000
+  - `2026-11-06`: 261 transfers, Total = ₦3,270,500
+  - `2026-11-05`: 299 transfers, Total = ₦3,815,000
+
+### Pipeline 3: Polyglot Left Outer Join (`$lookup`)
+- **Business Intent**: Identify the top 5 customers experiencing repeated authentication failures and join their KYC profile to correlate fraud risk with verification status.
+- **Pipeline Architecture**:
+  ```javascript
+  [
+    { $match: { event_type: 'LOGIN_FAILED' } },
+    { $group: { _id: '$customer_id', failed_logins: { $sum: 1 } } },
+    { $sort: { failed_logins: -1, _id: 1 } },
+    { $limit: 5 },
+    { $lookup: { from: 'kyc_profiles', localField: '_id', foreignField: 'customer_id', as: 'kyc' } },
+    { $unwind: '$kyc' },
+    { $project: { _id: 0, customer_id: '$_id', failed_logins: 1, tier: '$kyc.tier', status: '$kyc.status' } }
+  ]
+  ```
+- **Live Output**:
+  ```json
+  { "customer_id": 3,  "failed_logins": 20, "tier": 1, "status": "PENDING" }
+  { "customer_id": 11, "failed_logins": 20, "tier": 1, "status": "VERIFIED" }
+  { "customer_id": 19, "failed_logins": 20, "tier": 3, "status": "REJECTED" }
+  { "customer_id": 27, "failed_logins": 20, "tier": 2, "status": "VERIFIED" }
+  { "customer_id": 35, "failed_logins": 20, "tier": 2, "status": "VERIFIED" }
+  ```
+
+### Pipeline 4: Structural Document Density Analysis
+- **Business Intent**: Evaluate regulatory onboarding completeness across tiers by computing average document submission count per tier.
+- **Pipeline Architecture**:
+  ```javascript
+  [
+    { $group: { _id: '$tier', customers: { $sum: 1 }, avg_documents: { $avg: { $size: '$documents' } } } },
+    { $sort: { _id: 1 } }
+  ]
+  ```
+- **Live Output**:
+  - `Tier 1`: 2,500 customers | Average documents = **1.00** (BVN only)
+  - `Tier 2`: 1,500 customers | Average documents = **2.00** (BVN + Passport / NIN)
+  - `Tier 3`: 1,000 customers | Average documents = **3.00** (BVN + Passport + Utility Bill)
 
 ---
 
-### 3.3 Schema Rigidity vs. Schema Flexibility
+## 6. Empirical Index Optimization & Metrics Table
 
-- **PostgreSQL (Strict Rigidity)**:
-  - Requires predefined schemas, data types, and check constraints (`CHECK (balance >= 0)`, `CHECK (account_number ~ '^[0-9]{10}$')`).
-  - Altering tables in high-volume production requires careful lock management, migration scripts, and downtime planning.
-  - **Fintech Benefit**: Mathematical precision (`NUMERIC(19,4)`) ensures rounding errors and invalid monetary states are rejected at the database driver level.
+In [`04_indexes_explain.js`](04_indexes_explain.js), queries were profiled before and after index creation using MongoDB's `explain('executionStats')` on live datasets (100,000 `audit_events` and 5,000 `kyc_profiles`).
 
-- **MongoDB (Governed Flexibility)**:
-  - Accommodates polymorphic data without schema alterations. For example, Tier 1 customers submit only a BVN, whereas Tier 3 corporate customers submit international passports, business registration numbers, and utility bills.
-  - Through `$jsonSchema` validation (implemented in `01_schema_validation.js`), EquityPay enforces strict regulatory compliance at the database level—rejecting invalid document types (`status: 'MAYBE'`) with `DocumentValidationFailure (code 121)` while retaining field-level extensibility for new identity document types.
+### 6.1 Before-and-After Metrics Table
 
----
+| Query & Workload | Target Field(s) | Metric | Before Indexing | After Indexing | Optimization Factor |
+| :--- | :--- | :--- | :---: | :---: | :---: |
+| **Q1: Customer Audit Feed**<br>`audit_events.find({ customer_id: 1001 })`<br>`.sort({ ts: -1 }).limit(20)` | `customer_id: 1, ts: -1`<br>(Compound Index:<br>`idx_audit_customer_ts`) | **Plan Stages**<br>**Docs Examined**<br>**Keys Examined**<br>**Returned Docs**<br>**Execution Time** | `SORT > COLLSCAN`<br>100,000<br>0<br>20<br>**50 ms** | `LIMIT > FETCH > IXSCAN`<br>20<br>20<br>20<br>**1 ms** | **Eliminated in-memory sort**<br>**5,000x fewer docs examined**<br>0 wasted reads<br>**50x lower latency (98% reduction)** |
+| **Q2: Fraud Monitoring**<br>`audit_events.find({ event_type: 'FRAUD_FLAG',`<br>`ts: { $gte: NOW - 7d } })` | `event_type: 1, ts: -1`<br>(Compound Index:<br>`idx_audit_type_ts`) | **Plan Stages**<br>**Docs Examined**<br>**Keys Examined**<br>**Returned Docs**<br>**Execution Time** | `COLLSCAN`<br>100,000<br>0<br>907<br>**43 ms** | `FETCH > IXSCAN`<br>907<br>907<br>907<br>**5 ms** | **Zero full collection scan**<br>**110x fewer docs examined**<br>1:1 key-to-doc precision<br>**8.6x lower latency (88% reduction)** |
+| **Q3: KYC Profile Point Lookup**<br>`kyc_profiles.find({ customer_id: 2500 })` | `customer_id: 1`<br>(Unique Index:<br>`uq_kyc_customer`) | **Plan Stages**<br>**Docs Examined**<br>**Keys Examined**<br>**Returned Docs**<br>**Execution Time** | `COLLSCAN`<br>5,000<br>0<br>1<br>**4 ms** | `EXPRESS_IXSCAN`<br>1<br>1<br>1<br>**0 ms** | **Direct B-tree leaf lookup**<br>**5,000x fewer docs examined**<br>Sub-millisecond resolution<br>**Instantaneous lookup (< 1 ms)** |
 
-### 3.4 Scalability & Performance Under Load
+### 6.2 Index Storage Footprint
+Physical index overhead was extracted directly from WiredTiger engine statistics:
+- **`audit_events`**: Data Size = **16.3 MB** | Total Index Size = **8.7 MB** across 3 indexes (`_id_`, `idx_audit_customer_ts`, `idx_audit_type_ts`).
+- **`kyc_profiles`**: Data Size = **0.9 MB** | Total Index Size = **0.2 MB** across 2 indexes (`_id_`, `uq_kyc_customer`).
 
-- **PostgreSQL**:
-  - Excels at complex queries, sub-queries, and transactional writes within a single node or active-passive cluster.
-  - High write throughput on a single ledger table eventually hits I/O write limits on disk serialization (WAL writer and checkpointing bottlenecks).
+### 6.3 Unique Constraint Validation
+To verify constraint enforcement on `uq_kyc_customer`:
+```javascript
+nosql.kyc_profiles.insertOne({ customer_id: 1, tier: 1, ... });
+```
+- **Engine Response**: Rejected with **`DuplicateKey` (code `11000`)**.
+- **Significance**: Prevents duplicate customer profiles from corrupting the customer perimeter.
 
-- **MongoDB**:
-  - Architected natively for horizontal scale-out through replica sets and shard clusters.
-  - For EquityPay’s `audit_events` collection (which ingests millions of authentication attempts, GPS locations, and payment telemetry per day), MongoDB's scale-out architecture allows writes to be partitioned across shards using a hashed shard key on `customer_id` or time-based chunking.
-
----
-
-### 3.5 The Consistency Model: ACID vs. BASE
-
-- **ACID (PostgreSQL)**:
-  - **Atomicity**: All or nothing.
-  - **Consistency**: Immediate transitions from one valid state to another.
-  - **Isolation**: Serial execution guarantees without dirty reads or phantom writes.
-  - **Durability**: Committed write-ahead logs (WAL) survive operating system or hardware crashes.
-
-- **BASE (MongoDB)**:
-  - **Basically Available**: High availability via replica sets with automated primary election.
-  - **Soft State**: Nodes may experience replication lag before synchronization.
-  - **Eventual Consistency**: Replicas converge on the primary's state over time.
-  - While MongoDB supports `w: "majority"` and `readConcern: "linearizable"`, enabling full strong consistency across distributed nodes degrades write latency significantly, nullifying its raw throughput advantages.
+### 6.4 Automated Data Lifecycle: TTL Index on `login_sessions`
+- **Configuration**: `{ created_at: 1 }, { expireAfterSeconds: 3600, name: 'ttl_session_1h' }`.
+- **Engine Behavior**: WiredTiger's background TTL thread evaluates timestamps every 60 seconds, evicting expired tokens automatically without cron jobs or application-level housekeeping.
+- **Architectural Distinction**: TTL indexes are strictly prohibited on `audit_events` because financial regulatory compliance (CBN & PCI-DSS) mandates permanent retention for forensic non-repudiation.
 
 ---
 
-## 4. Why You Would NOT Move the Ledger to MongoDB
+## 7. Deep Personal Analysis: Relational (SQL) vs. Document (NoSQL)
 
-A common architectural temptation is to unify the tech stack by moving the entire relational database into a document store. In an enterprise financial institution like EquityPay, **moving the double-entry accounting ledger to MongoDB would be an engineering and regulatory disaster**:
+### 7.1 Concurrency Control & Isolation Semantics
+In **PostgreSQL**, concurrency relies on Multi-Version Concurrency Control (MVCC) combined with deterministic row-level locks (`SELECT ... FOR UPDATE`). Every transaction operates within an explicit isolation boundary (`READ COMMITTED` or `REPEATABLE READ`). In EquityPay's ledger, double-entry journal entries must lock both the source and destination accounts simultaneously. By ordering account acquisitions using `LEAST()` and `GREATEST()` primary keys, PostgreSQL guarantees deadlock-free transfers under thousands of concurrent requests.
 
-### 1. Inability to Enforce Cross-Collection Mathematical Invariants
-In PostgreSQL, double-entry bookkeeping relies on multi-table check constraints and database-level triggers to guarantee that for every transaction:
-$$\sum \text{Debits} - \sum \text{Credits} = 0.0000$$
-MongoDB cannot enforce multi-document integrity constraints declaratively. If an application service crashes mid-transfer while writing to separate document collections, the database engine cannot natively guarantee that unbalanced money movement is prevented without complex, latency-heavy distributed two-phase commits.
+In **MongoDB**, single-document updates are atomic by default. Modifying nested arrays via `$push` or `$set` is thread-safe on a single document. However, cross-document operations rely on multi-document ACID transactions introduced in MongoDB 4.0. In a high-throughput financial system, multi-document transactions in MongoDB incur severe write-lock overhead across WiredTiger storage engines, consume significant cache memory, and enforce a strict 60-second execution window. Under high contention, MongoDB aborts conflicting transactions aggressively, creating unacceptable retry storms.
 
-### 2. Lack of Fixed-Point Monetary Arithmetic Guarantees
-PostgreSQL natively enforces `NUMERIC(19,4)` with exact decimal arithmetic. While MongoDB supports the BSON `Decimal128` data type, JavaScript and standard client drivers frequently coerce numbers to IEEE 754 floating-point numbers (`Double`), introducing subtle rounding discrepancies that violate Central Bank of Nigeria (CBN) and IFRS-9 banking audit standards.
+### 7.2 Why You Would NEVER Move the Ledger to MongoDB
+A naive engineering temptation is to consolidate the technology stack into a single document database. In an enterprise financial institution like EquityPay, **migrating the double-entry accounting ledger to MongoDB would be an engineering and regulatory catastrophe**:
 
-### 3. Vulnerability to Distributed Isolation Anomalies
-In a sharded MongoDB cluster, accounts located on different shards require distributed transactions managed across multiple replica set primaries. Under high contention (such as flash sales or payroll runs hitting hot merchant accounts), distributed transactions suffer from write conflicts, lock wait timeouts, and transaction aborts, crippling transactional throughput compared to local PostgreSQL row-level locks.
+1. **Inability to Enforce Cross-Collection Mathematical Invariants**:
+   In PostgreSQL, double-entry bookkeeping relies on multi-table check constraints and database-level triggers to guarantee that for every transaction:
+   $$\sum \text{Debits} - \sum \text{Credits} = 0.0000$$
+   MongoDB cannot enforce multi-document integrity constraints declaratively. If an application service crashes mid-transfer while writing to separate document collections, the database engine cannot natively guarantee that unbalanced money movement is prevented without complex, latency-heavy distributed two-phase commits.
+2. **Lack of Fixed-Point Monetary Arithmetic Guarantees**:
+   PostgreSQL natively enforces `NUMERIC(19,4)` with exact decimal arithmetic. While MongoDB supports the BSON `Decimal128` data type, JavaScript and standard client drivers frequently coerce numbers to IEEE 754 floating-point numbers (`Double`), introducing subtle rounding discrepancies that violate Central Bank of Nigeria (CBN) and IFRS-9 banking audit standards.
+3. **Vulnerability to Distributed Isolation Anomalies**:
+   In a sharded MongoDB cluster, accounts located on different shards require distributed transactions managed across multiple replica set primaries. Under high contention (such as flash sales or payroll runs hitting hot merchant accounts), distributed transactions suffer from write conflicts, lock wait timeouts, and transaction aborts, crippling transactional throughput compared to local PostgreSQL row-level locks.
+4. **Regulatory Auditability and Compliance (PCI-DSS & CBN)**:
+   Financial regulators mandate strict non-repudiation, tamper-evident write-ahead logging, and point-in-time recovery (PITR) with zero transaction loss. PostgreSQL’s write-ahead log (WAL) and linearizable transaction history provide an unimpeachable audit trail that document stores with eventual consistency cannot legally satisfy.
 
-### 4. Regulatory Auditability and Compliance (PCI-DSS & CBN)
-Financial regulators mandate strict non-repudiation, tamper-evident write-ahead logging, and point-in-time recovery (PITR) with zero transaction loss. PostgreSQL’s write-ahead log (WAL) and linearizable transaction history provide an unimpeachable audit trail that document stores with eventual consistency cannot legally satisfy.
-
-> **Architectural Conclusion**:  
+> **Architectural Standard**:  
 > **PostgreSQL owns the money; MongoDB owns the customer context.**  
 > Moving the ledger to MongoDB compromises the financial foundation of the bank. Conversely, forcing polymorphic KYC documents and multi-gigabyte audit event streams into PostgreSQL bloats the relational engine and degrades query planning. Polyglot persistence is the correct engineering standard.
 
 ---
 
-## 5. How to Reproduce
+## 8. Verification Evidence & Screenshot Index
 
-All commands are executed from the repository root directory in PowerShell:
+All test stages were executed against MongoDB Atlas and captured as empirical visual evidence in [`portfolio-4-nosql/screenshots/`](screenshots/):
 
-### Step 1: Deploy Collections & Schema Validation
-```powershell
-mongosh "$env:MONGODB_URI" --file portfolio-4-nosql/01_schema_validation.js
-```
-*Expected: Creates `kyc_profiles`, `audit_events`, `login_sessions` with JSON schema validation. Rejects invalid documents with `DocumentValidationFailure` (code 121).*
-
-### Step 2: Batch Seed Data
-```powershell
-mongosh "$env:MONGODB_URI" --file portfolio-4-nosql/02_seed_data.js
-```
-*Expected: Seeds 5,000 KYC profiles and 100,000 audit events in structured memory batches.*
-
-### Step 3: Execute CRUD Operations & Aggregation Pipelines
-```powershell
-mongosh "$env:MONGODB_URI" --file portfolio-4-nosql/03_crud_and_aggregation.js | Tee-Object portfolio-4-nosql/output/03_crud_and_aggregation.txt
-```
-*Expected: Demonstrates document insertion, nested `$elemMatch` array queries, `$push` updates, and 4 aggregation pipelines (including `$lookup` join).*
-
-### Step 4: Index Optimization, Explain Plans & TTL
-```powershell
-mongosh "$env:MONGODB_URI" --file portfolio-4-nosql/04_indexes_explain.js | Tee-Object portfolio-4-nosql/output/04_indexes_explain.txt
-```
-*Expected: Benchmarks queries before and after compound indexing, validates unique index duplicate rejection, and configures a 1-hour TTL index on `login_sessions`.*
+| Step | Evidence Artifact | Description |
+| :---: | :--- | :--- |
+| **01** | [`screenshots/Chukwuebuka_Azuh_301906536_schema_validation.png`](screenshots/Chukwuebuka_Azuh_301906536_schema_validation.png) | Successful deployment of JSON schema validators and rejection of invalid KYC documents with error code `121`. |
+| **02** | [`screenshots/Chukwuebuka_Azuh_301906536_seed_verification.png`](screenshots/Chukwuebuka_Azuh_301906536_seed_verification.png) | Batch seeding verification displaying 5,000 `kyc_profiles` and 100,000 `audit_events` in MongoDB Atlas. |
+| **03** | [`screenshots/Chukwuebuka_Azuh_301906536_CRUD.png`](screenshots/Chukwuebuka_Azuh_301906536_CRUD.png) | Execution of document creation, `$elemMatch` array queries, `$set`/`$push` updates, and clean demo deletions. |
+| **04** | [`screenshots/Chukwuebuka_Azuh_301906536_aggregation.png`](screenshots/Chukwuebuka_Azuh_301906536_aggregation.png) | Terminal execution of all 4 analytical aggregation pipelines (event breakdown, daily volume, `$lookup` join, document sizes). |
+| **05** | [`screenshots/Chukwuebuka_Azuh_301906536_explain metrics_session clearing.png`](screenshots/Chukwuebuka_Azuh_301906536_explain%20metrics_session%20clearing.png) | Detailed `explain('executionStats')` output before and after indexing, duplicate key rejection (code `11000`), and TTL setup. |
+| **06** | [`screenshots/Chukwuebuka_Azuh_301906536_directory.png`](screenshots/Chukwuebuka_Azuh_301906536_directory.png) | Complete directory tree showing scripts, logs in `output/`, and screenshots. |
 
 ---
 
-## 6. Key Empirical Findings
+## 9. How to Reproduce
 
-### 6.1 Index Optimization Analysis (`explain('executionStats')`)
+### Prerequisites
+- Node.js (v20+) & `mongosh` installed.
+- Valid MongoDB Atlas URI configured in `portfolio-4-nosql/.env`.
 
-| Query | Target Field(s) | Before Indexing (COLLSCAN) | After Indexing (IXSCAN) | Performance Improvement |
-| :--- | :--- | :---: | :---: | :---: |
-| **Q1 (Customer Audit Feed)** | `customer_id: 1, ts: -1` | 100,000 docs examined + In-Memory `SORT` | 20 keys examined (`IXSCAN > FETCH > LIMIT`) | **5,000x reduction in docs examined**; 0ms latency |
-| **Q2 (Fraud Monitoring)** | `event_type: 1, ts: -1` | 100,000 docs examined | Exact matching fraud keys scanned | **Zero full collection scans** |
-| **Q3 (KYC Profile Lookup)** | `customer_id: 1` (Unique) | 5,000 docs examined | Exactly 1 key examined | **5,000x faster point lookup** |
+### Step-by-Step Execution
 
-### 6.2 Data Lifecycle Automation
-- **Time-To-Live (TTL) Index**: Enforcing `{ created_at: 1 }, { expireAfterSeconds: 3600 }` on `login_sessions` automates session expiration at the database engine level, removing the need for cron-based cleanup jobs while guaranteeing that permanent audit logs in `audit_events` remain untouched.
+```bash
+# 1. Export MongoDB Connection URI
+export MONGODB_URI=$(cat portfolio-4-nosql/.env | grep MONGODB_URI | cut -d= -f2-)
+
+# 2. Deploy Schema Validation Rules
+mongosh "$MONGODB_URI" --file portfolio-4-nosql/01_schema_validation.js
+
+# 3. Batch Seed Data (5,000 KYC Profiles & 100,000 Audit Events)
+mongosh "$MONGODB_URI" --file portfolio-4-nosql/02_seed_data.js
+
+# 4. Execute CRUD Operations & Aggregation Pipelines
+mongosh "$MONGODB_URI" --file portfolio-4-nosql/03_crud_and_aggregation.js | tee portfolio-4-nosql/output/03_crud_and_aggregation.txt
+
+# 5. Profile Indexes, Execution Plans & TTL Automation
+mongosh "$MONGODB_URI" --file portfolio-4-nosql/04_indexes_explain.js | tee portfolio-4-nosql/output/04_indexes_explain.txt
+```
+
+*(On Windows PowerShell, use `$env:MONGODB_URI="mongodb+srv://..."` and pipe to `Tee-Object` as documented in step headers).*
+
+---
+
+## 10. Reflection & AI-Use Declaration
+
+### 10.1 Engineering Reflection
+Architecting and benchmarking Portfolio 4 has provided tangible clarity on the trade-offs of Polyglot Persistence. In classroom discussions, NoSQL is often presented either as a silver bullet that replaces "outdated" relational models or as an unprincipled store lacking integrity. Observing both engines operate side-by-side on EquityPay's data demonstrates that the two paradigms are complementary partners.
+
+The most striking empirical lesson was observing the efficiency of compound B-Tree indexes in MongoDB. Prior to indexing, running a simple customer feed query scanned 100,000 documents and consumed 50 ms because the engine was forced to allocate an in-memory sort buffer. Constructing the compound index `{ customer_id: 1, ts: -1 }` enabled the engine to scan exactly 20 index keys and 20 documents, collapsing latency to 1 ms (a 50x speedup). Conversely, implementing `$lookup` revealed why document stores should not emulate relational databases: while functional, multi-stage `$lookup` queries require significant memory and lack the compile-time cost optimizations that PostgreSQL's Hash and Merge joins deliver natively.
+
+### 10.2 AI-Use Declaration
+In compliance with university academic integrity standards, AI assistance (Google DeepMind Antigravity / Gemini) was utilized as an intelligent pair-programming collaborator for:
+- Formulating complex MongoDB aggregation pipeline syntax (`$lookup`, `$unwind`, `$dateToString`, `$size`).
+- Drafting the compound index and explain plan analysis harness functions.
+- Structuring Markdown documentation, comparative metrics tables, and LaTeX mathematical notations.
+
+All MongoDB schemas, seeding operations, aggregation scripts, and index explain evaluations were executed live against an active MongoDB Atlas 8.0 cloud cluster. All empirical metrics, timing statistics, and screenshot captures represent authentic, verifiable experimental data.

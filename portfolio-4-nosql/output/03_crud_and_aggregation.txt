@@ -15,7 +15,7 @@
       number: 'A12345678'
     }
   ],
-  created_at: ISODate('2026-11-09T17:06:25.582Z')
+  created_at: ISODate('2026-11-09T17:26:07.862Z')
 }
 
 --- READ: tier 3 customers who hold a PASSPORT (query inside an array)
@@ -67,12 +67,12 @@ deleted = 1
 ############ AGGREGATION ############
 
 --- Aggregation 1: events per type in the last 30 days
-  TRANSFER_INITIATED: 8296
-  LOGIN_SUCCESS: 8192
-  PIN_CHANGED: 4275
-  KYC_UPGRADED: 4154
-  FRAUD_FLAG: 4133
-  LOGIN_FAILED: 4105
+  TRANSFER_INITIATED: 8294
+  LOGIN_SUCCESS: 8190
+  PIN_CHANGED: 4272
+  KYC_UPGRADED: 4152
+  FRAUD_FLAG: 4130
+  LOGIN_FAILED: 4104
 
 --- Aggregation 2: total TRANSFER_INITIATED amount per day (latest 5 days)
   2026-11-09  transfers=200  total=₦2760500
