@@ -2,9 +2,11 @@
 ## Portfolio 4: NoSQL & Polyglot Persistence Architecture
 ### Case Study: EquityPay Financial Services Ltd.
 
-**Candidate**: Chukwuebuka Azuh  
+**Student Name**: Chukwuebuka Azuh  
 **Student ID**: 301906536  
-**Degree**: Master of Science in Information Technology (M.Sc. IT)  
+**School** Miva Open University 
+**Course Code**: MIT 8103 
+**Course Name**: Advanced Database Systems 
 **Database Systems**: PostgreSQL 18 (Relational Core) & MongoDB Atlas 8.0 (Document Perimeter)  
 
 ---
