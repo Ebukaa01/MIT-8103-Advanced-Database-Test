@@ -1,6 +1,7 @@
 # MIT8103: Advanced Database Systems
 
 **Case Study**: EquityPay Financial Services Ltd. (Simulated Digital Banking & Payments Infrastructure)
+
 Student Name: Chukwuebuka Azuh
 Student ID: 301906536
 Course: MIT 8103 Advanced Database Systems
