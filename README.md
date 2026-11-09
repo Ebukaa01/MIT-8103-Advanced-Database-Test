@@ -18,6 +18,8 @@ Assessment Type: Individual Practical Database Portfolio (40 Marks Continuous As
 
 Case Study Organisation: EquityPay Financial Services Ltd. (Simulated Digital Banking & Payments Infrastructure)
 
+Github Repository : https://github.com/Ebukaa01/MIT-8103-Advanced-Database-Test/blob/main/README.md
+
 
 ---
 
