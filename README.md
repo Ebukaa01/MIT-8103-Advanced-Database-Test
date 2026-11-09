@@ -84,8 +84,9 @@ All 5 core portfolios and university-mandated synthesis documents are 100% compl
 
 
 
-* ## 5. Repository Directory Layout
+## 5. Repository Directory Layout
 
+```text
 mit-8103-advanced-database-portfolio/
 ├── README.md                                     # Root repository navigation and executive summary
 ├── Azuh_Chukwuebuka_README.txt                   # LMS submission manifest and index file
@@ -120,8 +121,9 @@ mit-8103-advanced-database-portfolio/
     ├── README.md                                 # Portfolio 5 replication & failover guide
     ├── replication-and-failover.md               # Streaming replication setup & promotion playbook
     ├── sharding-partitioning.md                  # Partitioning & sharding architecture design
-    └── scripts/                                  ## Read-routing simulator & backup/restore drill
---- 
+    └── scripts/                                  # Connection router simulator & backup/restore drill
+
+```
 
 
  ## 6. Academic Integrity & AI Use DeclarationAll database schemas, queries, optimization indexes, benchmarking harnesses, and architectural documentation were designed and executed by Chukwuebuka Azuh (Student ID: 301906536) for MIT 8103 Advanced Database Systems at Miva Open University.Synthetic Data: All customer profiles, account numbers, BVNs, NINs, email addresses, and financial transaction records generated for EquityPay Financial Services Ltd. are 100% synthetic and fictitious. No real customer data was used.AI Assistance: Generative AI tools were utilized as technical pair-programming assistants for drafting synthetic data generation scripts and markdown table formatting. All database designs, SQL constraints, transaction lock strategies, and benchmark evaluations were independently verified and executed by the author. A full disclosure is provided in docs/ai-use-declaration.md.
