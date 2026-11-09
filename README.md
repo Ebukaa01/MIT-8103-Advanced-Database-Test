@@ -135,23 +135,12 @@ All customer profiles, account numbers, BVNs, NINs, email addresses, and financi
 
 ## 7. Current Project Status
 
-Portfolio Milestone	Target Marks	|Completion Status	Evidence & Test Verification
-Portfolio 1: Database Design and Modelling	7 Marks	Completed (100%) ✅	All 6 tables created; 11 constraint tests passing; 3NF/BCNF proven; ERD exported.
-Portfolio 2: Query Processing and Optimisation	7 Marks	Completed (100%) ✅	10 queries profiled; B-tree/partial indexes created; EXPLAIN ANALYZE benchmarks recorded.
-Portfolio 3: Transactions and Concurrency Control	7 Marks	Completed (100%) ✅	ACID exercises A–G verified; deadlock-free lock ordering; 10-client pgbench test (500 txns).
-Portfolio 4: NoSQL and Advanced Data Models	7 Marks	Completed (100%) ✅	3 collections validated; 30,000 synthetic documents; 4 aggregation pipelines; TTL index active.
-Portfolio 5: Distributed and Cloud Databases	6 Marks	Completed (100%) ✅	Streaming replication active; failover drill passed; read-routing simulator; RTO < 5m backup drill.
-Synthesis & Submission Deliverables	6 Marks	Completed (100%) ✅	Final Executive Report, AI Declaration, Bibliography, and LMS submission folder ready.
-Total Continuous Assessment Scope	40 Marks	ALL COMPLETED (100%) ✅	Full Academic Requirements Satisfied
-
-
-| **Portfolio Milestone** | **Target Marks** |**Completion Status**  | **Evidence & Test Verification** |
-|   Portfolio 1: Database |      7 Marks     | Completed (100%)✅    | All 6 tables created; 11 constraint tests passing;                                                                         3NF/BCNF proven; ERD exported.
-| Portfolio Milestone     |                  | Header 3              | Header 4                         |
-| :---                    | :---             |        :---           | :---                             |
-| Row 1 A                 | Row 1 B  | Row 1 C  | Row 1 D  |
-| Row 2 A  | Row 2 B  | Row 2 C  | Row 2 D  |
-| Row 3 A  | Row 3 B  | Row 3 C  | Row 3 D  |
-| Row 4 A  | Row 4 B  | Row 4 C  | Row 4 D  |
-| Row 5 A  | Row 5 B  | Row 5 C  | Row 5 D  |
-| Row 6 A  | Row 6 B  | Row 6 C  | Row 6 D  |
+| Portfolio Milestone | Target Marks | Completion Status | Evidence & Test Verification |
+| :--- | :---: | :---: | :--- |
+| Portfolio 1: Database Design and Modelling | 7 Marks | Completed (100%) ✅ | All 6 tables created; 11 constraint tests passing; 3NF/BCNF proven; ERD exported. |
+| Portfolio 2: Query Processing and Optimisation | 7 Marks | Completed (100%) ✅ | 10 queries profiled; B-tree/partial indexes created; EXPLAIN ANALYZE benchmarks recorded. |
+| Portfolio 3: Transactions and Concurrency Control | 7 Marks | Completed (100%) ✅ | ACID exercises A–G verified; deadlock-free lock ordering; 10-client pgbench test (500 txns). |
+| Portfolio 4: NoSQL and Advanced Data Models | 7 Marks | Completed (100%) ✅ | 3 collections validated; 30,000 synthetic documents; 4 aggregation pipelines; TTL index active. |
+| Portfolio 5: Distributed and Cloud Databases | 6 Marks | Completed (100%) ✅ | Streaming replication active; failover drill passed; read-routing simulator; RTO < 5m backup drill. |
+| Synthesis & Submission Deliverables | 6 Marks | Completed (100%) ✅ | Final Executive Report, AI Declaration, Bibliography, and LMS submission folder ready. |
+| **Total Continuous Assessment Scope** | **40 Marks** | **ALL COMPLETED (100%) ✅** | **Full Academic Requirements Satisfied** |
