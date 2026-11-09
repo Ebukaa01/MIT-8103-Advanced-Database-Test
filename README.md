@@ -3,13 +3,21 @@
 **Case Study**: EquityPay Financial Services Ltd. (Simulated Digital Banking & Payments Infrastructure)
 
 Student Name: Chukwuebuka Azuh
+
 Student ID: 301906536
+
 Course: MIT 8103 Advanced Database Systems
+
 Session: 2026/2027 Academic Session (September Cohort)
+
 Programme: Master of Information Technology (MIT)
+
 Institution: Miva Open University — School of Post Graduate Studies
+
 Assessment Type: Individual Practical Database Portfolio (40 Marks Continuous Assessment)
+
 Case Study Organisation: EquityPay Financial Services Ltd. (Simulated Digital Banking & Payments Infrastructure)
+
 
 ---
 
