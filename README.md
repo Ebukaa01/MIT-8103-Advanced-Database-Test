@@ -130,6 +130,7 @@ mit-8103-advanced-database-portfolio/
  
  All database schemas, queries, optimization indexes, benchmarking harnesses, and architectural documentation were designed and executed by Chukwuebuka Azuh (Student ID: 301906536) for MIT 8103 Advanced Database Systems at Miva Open University.Synthetic Data: 
 All customer profiles, account numbers, BVNs, NINs, email addresses, and financial transaction records generated for Equity Pay Financial Services Ltd. are 100% synthetic and fictitious. No real customer data was used. AI Assistance: Generative AI tools were utilized as technical pair-programming assistants for drafting synthetic data generation scripts and markdown table formatting. All database designs, SQL constraints, transaction lock strategies, and benchmark evaluations were independently verified and executed by the author. A full disclosure is provided in docs/ai-use-declaration.md.
+Please the other contributor was as result of my faulty laptop and I had to use another system to finish up, hence the other contributor came in.
 
 ---
 
