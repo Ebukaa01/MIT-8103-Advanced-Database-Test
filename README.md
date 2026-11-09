@@ -145,7 +145,13 @@ Synthesis & Submission Deliverables	6 Marks	Completed (100%) ✅	Final Executive
 Total Continuous Assessment Scope	40 Marks	ALL COMPLETED (100%) ✅	Full Academic Requirements Satisfied
 
 
-| Header 1 | Header 2 | Header 3 |
-| -------- | -------- | -------- |
-| Row 1 A  | Row 1 B  | Row 1 C  |
-| Row 2 A  | Row 2 B  | Row 2 C  |
+| **Portfolio Milestone** | **Target Marks** |**Completion Status**  | **Evidence & Test Verification** |
+|   Portfolio 1: Database |      7 Marks     | Completed (100%)✅    | All 6 tables created; 11 constraint tests passing;                                                                         3NF/BCNF proven; ERD exported.
+| Portfolio Milestone     |                  | Header 3              | Header 4                         |
+| :---                    | :---             |        :---           | :---                             |
+| Row 1 A                 | Row 1 B  | Row 1 C  | Row 1 D  |
+| Row 2 A  | Row 2 B  | Row 2 C  | Row 2 D  |
+| Row 3 A  | Row 3 B  | Row 3 C  | Row 3 D  |
+| Row 4 A  | Row 4 B  | Row 4 C  | Row 4 D  |
+| Row 5 A  | Row 5 B  | Row 5 C  | Row 5 D  |
+| Row 6 A  | Row 6 B  | Row 6 C  | Row 6 D  |
