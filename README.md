@@ -124,14 +124,4 @@ mit-8103-advanced-database-portfolio/
 
 ---
 
-## 7. Current Project Status
 
-| Portfolio Milestone | Target Marks | Completion Status | Evidence & Test Verification |
-| :--- | :---: | :---: | :--- |
-| **Portfolio 1: Database Design & Modelling** | 7 Marks | Completed (100%) ✅ | Core schema created; fixed-point currency enforced; double-entry ledger invariants verified; 3NF/BCNF normalisation proven; ERD exported. |
-| **Portfolio 2: Query Processing & Optimisation** | 7 Marks | Completed (100%) ✅ | 10 production SQL queries profiled; composite & partial B-Tree indexes created; `EXPLAIN (ANALYZE, BUFFERS)` latency & cost reductions recorded. |
-| **Portfolio 3: Transactions & Concurrency Control** | 7 Marks | Completed (100%) ✅ | ACID transfers A–G verified; lock-order sorting (`ORDER BY account_id`) preventing deadlocks; 10-client `pgbench` stress test passed with 0 anomalies. |
-| **Portfolio 4: NoSQL & Polyglot Persistence** | 7 Marks | Completed (100%) ✅ | MongoDB 7.0 document store integrated via Transactional Outbox Pattern; `$jsonSchema` rules active; TTL index automated session purging verified. |
-| **Portfolio 5: Distributed & Cloud Databases** | 6 Marks | Completed (100%) ✅ | PostgreSQL streaming replication with physical slots active; automated `pg_ctl promote` failover drill passed; RTO < 5m / RPO = 0 disaster recovery drill completed. |
-| **Synthesis & Submission Deliverables** | 6 Marks | Completed (100%) ✅ | Executive Synthesis Report, Academic AI Use Declaration, IEEE Bibliography, and LMS Submission Manifest ready. |
-| **Total Continuous Assessment Scope** | **40 Marks** | **ALL COMPLETED (100%) ✅** | **Full Academic Requirements Satisfied** |
