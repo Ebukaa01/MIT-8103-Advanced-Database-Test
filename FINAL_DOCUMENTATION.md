@@ -237,7 +237,7 @@ Conducting this five-phase Continuous Assessment has fundamentally reshaped my e
 ---
 
 ### 6.2 AI-Use Declaration
-In compliance with the academic integrity guidelines and continuous assessment regulations of **Miva Open University**, this project acknowledges the ethical use of artificial intelligence:
+In compliance with the academic integrity guidelines and continuous assessment regulations of **Miva Open University**, this project done by Chukwuebuka Azuh (Student ID : 301906536) acknowledges the ethical use of artificial intelligence:
 
 - **AI Pair Programming Partner**: Artificial intelligence assistance (Google DeepMind Antigravity / Gemini) was utilized as an intelligent pair-programming collaborator for:
   - Drafting PostgreSQL replication entrypoint scripts and Docker Compose healthchecks.
