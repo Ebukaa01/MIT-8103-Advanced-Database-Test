@@ -135,5 +135,11 @@ All customer profiles, account numbers, BVNs, NINs, email addresses, and financi
 
 ## 7. Current Project Status
 
-Portfolio Milestone Target Marks   Completion StatusEvidence & Test Verification 
-Portfolio 1: Database Design & Modelling   7 MarksCompleted (100%) ✅All tables created; constraints passing; 3NF/BCNF proven; ERD exported.Portfolio 2: Query Optimisation7 MarksCompleted (100%) ✅10 queries profiled; B-Tree/partial indexes applied; EXPLAIN ANALYZE verified.Portfolio 3: Transactions & Concurrency7 MarksCompleted (100%) ✅ACID scripts verified; lock ordering enforced; zero deadlocks in pgbench.Portfolio 4: NoSQL & Polyglot Models7 MarksCompleted (100%) ✅JSON schema validation active; seed data populated; TTL index functional.Portfolio 5: Distributed & Cloud Databases6 MarksCompleted (100%) ✅Streaming replication active; failover drill passed; RTO $< 5$m backup drill.Synthesis & Final Governance6 MarksCompleted (100%) ✅Executive report, AI declaration, references, and LMS index file finalized.Total Continuous Assessment Scope40 MarksALL COMPLETED (100%) ✅Full Academic Requirements Satisfied
+Portfolio Milestone	Target Marks	Completion Status	Evidence & Test Verification
+Portfolio 1: Database Design and Modelling	7 Marks	Completed (100%) ✅	All 6 tables created; 11 constraint tests passing; 3NF/BCNF proven; ERD exported.
+Portfolio 2: Query Processing and Optimisation	7 Marks	Completed (100%) ✅	10 queries profiled; B-tree/partial indexes created; EXPLAIN ANALYZE benchmarks recorded.
+Portfolio 3: Transactions and Concurrency Control	7 Marks	Completed (100%) ✅	ACID exercises A–G verified; deadlock-free lock ordering; 10-client pgbench test (500 txns).
+Portfolio 4: NoSQL and Advanced Data Models	7 Marks	Completed (100%) ✅	3 collections validated; 30,000 synthetic documents; 4 aggregation pipelines; TTL index active.
+Portfolio 5: Distributed and Cloud Databases	6 Marks	Completed (100%) ✅	Streaming replication active; failover drill passed; read-routing simulator; RTO < 5m backup drill.
+Synthesis & Submission Deliverables	6 Marks	Completed (100%) ✅	Final Executive Report, AI Declaration, Bibliography, and LMS submission folder ready.
+Total Continuous Assessment Scope	40 Marks	ALL COMPLETED (100%) ✅	Full Academic Requirements Satisfied
