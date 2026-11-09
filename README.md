@@ -218,7 +218,8 @@ python3 portfolio-5-distributed-cloud/05_read_latency_benchmark.py
 
 ## 7. Academic Integrity & AI-Use Declaration
 
-In compliance with the academic integrity guidelines and continuous assessment regulations of **Miva Open University**, this project acknowledges the ethical use of artificial intelligence tools:
+In compliance with the academic integrity guidelines and continuous assessment regulations of **Miva Open University**, this project done by 
+ for MIT Advanced Database Systems acknowledges the ethical use of artificial intelligence tools:
 
 - **AI Collaboration**: Artificial intelligence assistance (Google DeepMind Antigravity / Gemini) was utilized as an intelligent pair-programming collaborator for syntax drafting, shell automation scripts, diagnostic catalog queries, and Markdown report formatting.
 - **Originality & Authenticity**: All database schemas, SQL queries, BSON document models, mathematical proofs, deadlock-free locking strategies, and distributed cluster configurations were formulated, tested, and analyzed by the student.
